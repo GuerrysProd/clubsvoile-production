@@ -1,0 +1,6 @@
+.env.local
+   .env
+   .env.*.localnode_modules/
+.next/
+node_modules/
+.next/

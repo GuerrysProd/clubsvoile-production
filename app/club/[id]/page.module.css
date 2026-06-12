@@ -1,0 +1,211 @@
+/* app/club/[id]/page.module.css */
+.main {
+  min-height: 100vh;
+  background-color: var(--color-neutral-50);
+  padding: var(--spacing-2xl) 0;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-ocean);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.backLink:hover {
+  color: var(--color-teal);
+}
+
+.clubDetail {
+  background: white;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.header {
+  background: linear-gradient(135deg, var(--color-ocean) 0%, var(--color-ocean-light) 100%);
+  color: white;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.location {
+  margin: var(--spacing-sm) 0 0 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-2xl);
+  padding: var(--spacing-2xl) var(--spacing-lg);
+}
+
+.section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.section h2 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: 1.25rem;
+  color: var(--color-ocean);
+  border-bottom: 2px solid var(--color-teal);
+  padding-bottom: var(--spacing-sm);
+}
+
+.section p {
+  margin: 0;
+  color: var(--color-neutral-700);
+  line-height: 1.7;
+}
+
+.activitiesList,
+.ageList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.activityBadge,
+.ageBadge {
+  display: inline-block;
+  background: #e0f2f1;
+  color: var(--color-ocean);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.contactCard {
+  background: linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  position: sticky;
+  top: 90px;
+}
+
+.contactCard h2 {
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: 1.25rem;
+  color: var(--color-ocean);
+  border: none;
+  padding: 0;
+}
+
+.contactItem {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.icon {
+  font-size: 1.5rem;
+  min-width: 2rem;
+}
+
+.label {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.value {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--color-neutral-700);
+  line-height: 1.5;
+}
+
+.contactItem a {
+  color: var(--color-ocean);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.contactItem a:hover {
+  color: var(--color-teal);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.buttons .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.notFound {
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  background: white;
+  border-radius: var(--radius-lg);
+}
+
+.notFound h1 {
+  color: var(--color-ocean);
+  margin-bottom: var(--spacing-md);
+}
+
+.notFound p {
+  color: var(--color-neutral-700);
+  margin-bottom: var(--spacing-lg);
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: var(--spacing-lg);
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+  }
+
+  .contactCard {
+    position: static;
+  }
+
+  .buttons {
+    flex-direction: column;
+  }
+
+  .buttons .btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+}

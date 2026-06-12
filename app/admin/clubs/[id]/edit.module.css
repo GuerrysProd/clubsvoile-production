@@ -1,0 +1,158 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  color: #fff;
+  background: linear-gradient(135deg, #001a4d 0%, #004d99 100%);
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.backBtn {
+  padding: 10px 20px;
+  background: rgba(0, 200, 255, 0.2);
+  border: 1px solid #00c8ff;
+  border-radius: 6px;
+  color: #00c8ff;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.backBtn:hover {
+  background: rgba(0, 200, 255, 0.4);
+}
+
+.header h1 {
+  margin: 0;
+  color: #00c8ff;
+  flex: 1;
+}
+
+.form {
+  background: rgba(0, 200, 255, 0.1);
+  border: 1px solid #00c8ff;
+  border-radius: 8px;
+  padding: 30px;
+}
+
+.group {
+  margin-bottom: 20px;
+}
+
+.group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #00c8ff;
+  font-weight: bold;
+}
+
+.group input,
+.group textarea {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0, 200, 255, 0.05);
+  border: 1px solid #00c8ff;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.group input::placeholder,
+.group textarea::placeholder {
+  color: rgba(0, 200, 255, 0.5);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.activities {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px;
+  background: rgba(0, 200, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(0, 200, 255, 0.3);
+  transition: all 0.3s;
+}
+
+.checkbox:hover {
+  background: rgba(0, 200, 255, 0.15);
+}
+
+.checkbox input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.saveBtn, .cancelBtn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.saveBtn {
+  background: linear-gradient(135deg, #00c8ff, #0099cc);
+  color: #001a4d;
+  flex: 1;
+}
+
+.saveBtn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(0, 200, 255, 0.5);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelBtn {
+  background: rgba(0, 200, 255, 0.2);
+  border: 1px solid #00c8ff;
+  color: #00c8ff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cancelBtn:hover {
+  background: rgba(0, 200, 255, 0.4);
+}
+
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 1.2rem;
+  color: #00c8ff;
+}
