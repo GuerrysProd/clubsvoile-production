@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import MapSimple from './MapSimple';
 import type { Club } from '@/lib/supabase';
 
@@ -89,7 +90,15 @@ function ClockIcon() {
   );
 }
 
-export default function ClubDetailView({ club, breadcrumb }: { club: Club; breadcrumb?: ReactNode }) {
+export default function ClubDetailView({
+  club,
+  breadcrumb,
+  activityLinks = {},
+}: {
+  club: Club;
+  breadcrumb?: ReactNode;
+  activityLinks?: Record<string, string>;
+}) {
   const cover = club.photos?.[0];
   const gallery = club.photos?.slice(1, 5) || [];
   const schedule = parseSchedule(club.schedule_open);
@@ -170,11 +179,17 @@ export default function ClubDetailView({ club, breadcrumb }: { club: Club; bread
               <section className="club-section">
                 <h2>Activités proposées</h2>
                 <div className="club-tags">
-                  {club.activities.map((a) => (
-                    <span key={a} className="pill">
-                      {a}
-                    </span>
-                  ))}
+                  {club.activities.map((a) =>
+                    activityLinks[a] ? (
+                      <Link key={a} href={activityLinks[a]} className="pill pill-link">
+                        {a}
+                      </Link>
+                    ) : (
+                      <span key={a} className="pill">
+                        {a}
+                      </span>
+                    )
+                  )}
                 </div>
               </section>
             )}

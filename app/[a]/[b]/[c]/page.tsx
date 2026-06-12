@@ -5,6 +5,8 @@ import '../../../home.css';
 import CvNav from '../../../components/CvNav';
 import CvFooter from '../../../components/CvFooter';
 import { getGeoIndex } from '@/lib/clubsData';
+import { ACTIVITIES } from '@/lib/activities';
+import { slugify } from '@/lib/slug';
 
 type Params = { a: string; b: string; c: string };
 
@@ -16,7 +18,12 @@ async function getCityData(params: Params) {
   if (!department) return null;
   const city = department.cities.get(params.c);
   if (!city) return null;
-  return { region, department, city };
+
+  const cityActivities = ACTIVITIES
+    .map((act) => ({ name: act.key, slug: slugify(act.key) }))
+    .filter((act) => index.activities.get(act.slug)?.cities.has(params.c));
+
+  return { region, department, city, cityActivities };
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
@@ -33,7 +40,7 @@ export default async function CityPage({ params }: { params: Params }) {
   const data = await getCityData(params);
   if (!data) notFound();
 
-  const { region, department, city } = data;
+  const { region, department, city, cityActivities } = data;
 
   return (
     <div className="cv">
@@ -42,6 +49,8 @@ export default async function CityPage({ params }: { params: Params }) {
       <header className="search-hero">
         <div className="wrap">
           <nav className="breadcrumb">
+            <Link href="/">Accueil</Link>
+            <span>/</span>
             <Link href={`/${params.a}`}>{region.name}</Link>
             <span>/</span>
             <Link href={`/${params.a}/${params.b}`}>{department.name}</Link>
@@ -78,6 +87,22 @@ export default async function CityPage({ params }: { params: Params }) {
           </div>
         </div>
       </section>
+
+      {cityActivities.length > 0 && (
+        <section className="block">
+          <div className="wrap">
+            <div className="sec-eyebrow">Par activité</div>
+            <h2 className="sec-title">Pratiquer à {city.name}</h2>
+            <div className="geo-grid">
+              {cityActivities.map((act) => (
+                <Link key={act.slug} href={`/${act.slug}/${params.c}`} className="geo-card">
+                  <span className="name">{act.name} à {city.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <CvFooter />
     </div>

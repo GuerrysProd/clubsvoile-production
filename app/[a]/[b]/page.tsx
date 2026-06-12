@@ -58,6 +58,8 @@ export default async function Page({ params }: { params: Params }) {
         <header className="search-hero">
           <div className="wrap">
             <nav className="breadcrumb">
+              <Link href="/">Accueil</Link>
+              <span>/</span>
               <Link href={`/${params.a}`}>{region.name}</Link>
             </nav>
             <span className="eyebrow">Annuaire ClubsVoile</span>
@@ -85,6 +87,7 @@ export default async function Page({ params }: { params: Params }) {
   }
 
   const { activity, city } = data;
+  const cityPath = city.clubs[0]?.path.split('/').slice(0, -1).join('/');
 
   return (
     <div className="cv">
@@ -93,7 +96,15 @@ export default async function Page({ params }: { params: Params }) {
       <header className="search-hero">
         <div className="wrap">
           <nav className="breadcrumb">
-            <Link href={`/${params.a}`}>{activity.name}</Link>
+            <Link href="/">Accueil</Link>
+            <span>/</span>
+            <Link href={`/${params.a}`}>{activity.name} en France</Link>
+            {cityPath && (
+              <>
+                <span>/</span>
+                <Link href={cityPath}>Clubs de voile à {city.name}</Link>
+              </>
+            )}
           </nav>
           <span className="eyebrow">Annuaire ClubsVoile</span>
           <h1>{activity.name} à <em>{city.name}</em></h1>

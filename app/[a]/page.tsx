@@ -51,6 +51,9 @@ export default async function Page({ params }: { params: Params }) {
 
         <header className="search-hero">
           <div className="wrap">
+            <nav className="breadcrumb">
+              <Link href="/">Accueil</Link>
+            </nav>
             <span className="eyebrow">Annuaire ClubsVoile</span>
             <h1>Clubs de voile en <em>{region.name}</em></h1>
             <p className="lede">Découvrez les clubs de voile par département en {region.name}.</p>
@@ -87,6 +90,9 @@ export default async function Page({ params }: { params: Params }) {
 
       <header className="search-hero">
         <div className="wrap">
+          <nav className="breadcrumb">
+            <Link href="/">Accueil</Link>
+          </nav>
           <span className="eyebrow">Annuaire ClubsVoile</span>
           <h1>{activity.name} : <em>où pratiquer en France</em></h1>
           <p className="lede">Découvrez les villes où pratiquer le {activity.name}.</p>

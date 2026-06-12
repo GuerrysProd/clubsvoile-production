@@ -5,6 +5,7 @@ import './home.css';
 import CvNav from './components/CvNav';
 import CvFooter from './components/CvFooter';
 import { ACTIVITIES } from '@/lib/activities';
+import FranceRegionMap, { type GeoRegion } from './components/FranceRegionMap';
 
 /* ----------------------------- DONNÉES ----------------------------- */
 const SUPPORTS = ACTIVITIES.map((a) => ({ k: a.key, ic: a.icon, d: a.description, trend: a.trend }));
@@ -73,6 +74,8 @@ export default function HomePage() {
   const [city, setCity] = useState('');
   const [count, setCount] = useState(0);
   const [clubs, setClubs] = useState<GeoClub[]>([]);
+  const [geoRegions, setGeoRegions] = useState<GeoRegion[]>([]);
+  const [geoActivities, setGeoActivities] = useState<{ slug: string; name: string; clubs: number }[]>([]);
 
   const mapRef = useRef<any>(null);
   const clusterRef = useRef<any>(null);
@@ -107,6 +110,16 @@ export default function HomePage() {
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/geo')
+      .then((res) => res.json())
+      .then((data) => {
+        setGeoRegions(data.regions || []);
+        setGeoActivities(data.activities || []);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -324,6 +337,17 @@ export default function HomePage() {
             <div id="cv-map" />
             <div className="map-meta"><span className="chip">{visibleCount}</span><b>{sup ? 'clubs · ' + sup : 'clubs affichés'}</b></div>
           </div>
+        </div>
+      </section>
+
+      <svg className="wave" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 46 V20 C 200 0 400 40 600 24 S 1000 0 1200 22 V46 Z" /></svg>
+
+      <section className="block regions" id="regions">
+        <div className="wrap">
+          <div className="sec-eyebrow">Par région</div>
+          <h2 className="sec-title">Explorez la voile, région par région.</h2>
+          <p className="sec-intro">Cliquez sur une région pour découvrir ses départements, puis ses villes et tous les clubs qui s&apos;y trouvent.</p>
+          {geoRegions.length > 0 && <FranceRegionMap regions={geoRegions} />}
         </div>
       </section>
 

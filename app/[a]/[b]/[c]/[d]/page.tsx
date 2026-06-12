@@ -8,6 +8,7 @@ import ClubDetailView from '../../../../components/ClubDetailView';
 import { supabase } from '@/lib/supabase';
 import { getGeoIndex } from '@/lib/clubsData';
 import { getClubGeo } from '@/lib/geo';
+import { slugify } from '@/lib/slug';
 
 type Params = { a: string; b: string; c: string; d: string };
 
@@ -43,8 +44,19 @@ export default async function ClubDetailPage({ params }: { params: Params }) {
 
   const geo = getClubGeo(club);
 
+  const index = await getGeoIndex();
+  const activityLinks: Record<string, string> = {};
+  for (const activityName of club.activities || []) {
+    const activitySlug = slugify(activityName);
+    if (index.activities.get(activitySlug)?.cities.has(geo.citySlug)) {
+      activityLinks[activityName] = `/${activitySlug}/${geo.citySlug}`;
+    }
+  }
+
   const breadcrumb = (
     <nav className="breadcrumb">
+      <Link href="/">Accueil</Link>
+      <span>/</span>
       <Link href={`/${params.a}`}>{geo.regionName}</Link>
       <span>/</span>
       <Link href={`/${params.a}/${params.b}`}>{geo.departmentName}</Link>
@@ -56,7 +68,7 @@ export default async function ClubDetailPage({ params }: { params: Params }) {
   return (
     <div className="cv">
       <CvNav />
-      <ClubDetailView club={club} breadcrumb={breadcrumb} />
+      <ClubDetailView club={club} breadcrumb={breadcrumb} activityLinks={activityLinks} />
       <CvFooter />
     </div>
   );
