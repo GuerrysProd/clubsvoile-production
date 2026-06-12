@@ -20,14 +20,24 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('clubs')
-      .select('*')
-      .limit(500);
+    const PAGE_SIZE = 1000;
+    const clubs: any[] = [];
+    let total = 0;
+    for (let from = 0; ; from += PAGE_SIZE) {
+      const { data, count, error } = await supabase
+        .from('clubs')
+        .select('*', { count: 'exact' })
+        .order('name', { ascending: true })
+        .range(from, from + PAGE_SIZE - 1);
 
-    if (error) throw error;
+      if (error) throw error;
 
-    return NextResponse.json({ clubs: data });
+      clubs.push(...(data || []));
+      total = count || 0;
+      if (!data || data.length < PAGE_SIZE || clubs.length >= total) break;
+    }
+
+    return NextResponse.json({ clubs, total });
   } catch (error) {
     return NextResponse.json(
       { error: String(error) },

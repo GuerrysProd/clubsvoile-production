@@ -7,6 +7,7 @@ import '../home.css';
 import CvNav from '../components/CvNav';
 import CvFooter from '../components/CvFooter';
 import type { Club } from '@/lib/types';
+import { ACTIVITY_LABELS } from '@/lib/activities';
 
 const RATING_OPTIONS = [0, 4, 4.5];
 
@@ -34,10 +35,7 @@ function SearchPageInner() {
     [clubs]
   );
 
-  const activities = useMemo(
-    () => Array.from(new Set(clubs.flatMap((c) => c.activities || []))).sort(),
-    [clubs]
-  );
+  const activities = ACTIVITY_LABELS;
 
   const filteredClubs = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();

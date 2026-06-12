@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import styles from './edit.module.css';
+import { ACTIVITY_LABELS } from '@/lib/activities';
 
 interface Club {
   id: string;
@@ -23,17 +24,7 @@ interface Club {
   longitude: number;
 }
 
-const ACTIVITY_OPTIONS = [
-  'Voilier',
-  'Catamaran',
-  'Optimiste',
-  'Kayak',
-  'Paddle',
-  'Wingfoil',
-  'Plancha Voile',
-  'Croisière',
-  'Windsurf',
-];
+const ACTIVITY_OPTIONS = ACTIVITY_LABELS;
 
 export default function EditClub() {
   const params = useParams();

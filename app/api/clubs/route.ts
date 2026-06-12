@@ -27,7 +27,9 @@ export async function GET() {
           activities,
           latitude,
           longitude,
-          rating
+          rating,
+          review_count,
+          schedule_open
         `, { count: 'exact' })
         .range(from, from + PAGE_SIZE - 1);
 
@@ -56,6 +58,8 @@ export async function GET() {
       latitude: c.latitude,
       longitude: c.longitude,
       rating: c.rating,
+      reviewCount: c.review_count,
+      scheduleOpen: c.schedule_open,
     }));
 
     return NextResponse.json({ clubs, total });

@@ -61,6 +61,70 @@
   color: rgba(0, 200, 255, 0.6);
 }
 
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.searchInput {
+  flex: 1 1 240px;
+  padding: 12px;
+  background: rgba(0, 200, 255, 0.1);
+  border: 1px solid #00c8ff;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.searchInput::placeholder {
+  color: rgba(0, 200, 255, 0.6);
+}
+
+.filters select {
+  padding: 12px;
+  background: rgba(0, 200, 255, 0.1);
+  border: 1px solid #00c8ff;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.filters select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.filters select option {
+  color: #000;
+}
+
+.resetBtn {
+  padding: 12px 18px;
+  background: rgba(0, 200, 255, 0.15);
+  border: 1px solid #00c8ff;
+  border-radius: 6px;
+  color: #00c8ff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.resetBtn:hover {
+  background: rgba(0, 200, 255, 0.3);
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sortable:hover {
+  color: #fff;
+}
+
 .table {
   background: rgba(0, 200, 255, 0.05);
   border: 1px solid #00c8ff;

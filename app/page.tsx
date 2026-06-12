@@ -4,19 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import './home.css';
 import CvNav from './components/CvNav';
 import CvFooter from './components/CvFooter';
+import { ACTIVITIES } from '@/lib/activities';
 
 /* ----------------------------- DONNÉES ----------------------------- */
-const SUPPORTS = [
-  { k: 'Wingfoil', ic: 'ic-wing', d: 'La glisse qui monte', trend: true },
-  { k: 'eFoil', ic: 'ic-efoil', d: 'Vol électrique', trend: true },
-  { k: 'Kitesurf', ic: 'ic-kite', d: 'Traction & sauts', trend: true },
-  { k: 'Catamaran', ic: 'ic-cata', d: 'Vitesse à deux coques' },
-  { k: 'Optimist', ic: 'ic-opti', d: 'Le premier bateau' },
-  { k: 'Dériveur', ic: 'ic-deriveur', d: "L'école de la voile" },
-  { k: 'Planche à voile', ic: 'ic-windsurf', d: 'Le grand classique' },
-  { k: 'Croisière', ic: 'ic-croisiere', d: 'Le large en habitable' },
-  { k: 'Paddle', ic: 'ic-paddle', d: 'Balade au calme' },
-];
+const SUPPORTS = ACTIVITIES.map((a) => ({ k: a.key, ic: a.icon, d: a.description, trend: a.trend }));
 
 const GEO: Record<string, Record<string, string[]>> = {
   'Hauts-de-France': { Nord: ['Dunkerque', 'Gravelines'], 'Pas-de-Calais': ['Calais', 'Boulogne-sur-Mer', 'Le Touquet'] },
@@ -34,7 +25,35 @@ const CENTERS: Record<string, [number, number]> = {
   'Nouvelle-Aquitaine': [45, -1.1], Occitanie: [43.2, 3.2], "Provence-Alpes-Côte d'Azur": [43.3, 6.2], Corse: [42.1, 9.1],
 };
 
-type GeoClub = { id: string; name: string; city: string; lat: number; lng: number; activities: string[] };
+type GeoClub = {
+  id: string;
+  name: string;
+  city: string;
+  lat: number;
+  lng: number;
+  activities: string[];
+  rating?: number;
+  reviewCount?: number;
+  scheduleOpen?: string;
+};
+
+const DAYS_FR: Record<string, string> = {
+  Monday: 'Lundi', Tuesday: 'Mardi', Wednesday: 'Mercredi', Thursday: 'Jeudi',
+  Friday: 'Vendredi', Saturday: 'Samedi', Sunday: 'Dimanche',
+};
+const TODAY_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
+
+function todayHours(raw?: string) {
+  if (!raw) return null;
+  const part = raw.split('|').find((p) => p.trim().startsWith(TODAY_EN));
+  if (!part) return null;
+  const hours = part.split(':').slice(1).join(':').trim();
+  return hours || null;
+}
+
+function escapeHtml(s: string) {
+  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] || c));
+}
 
 const FEAT = [
   { n: 'Société des Régates de Saint-Malo', loc: 'Saint-Malo, Bretagne', r: '4.8', tag: 'Intra-muros', acts: ['Catamaran', 'Optimist', 'Croisière'], img: 'https://images.unsplash.com/photo-1502209877429-2c1f55a44f6d?w=600&q=70&auto=format&fit=crop' },
@@ -65,7 +84,17 @@ export default function HomePage() {
       .then(data => {
         const geo: GeoClub[] = (data.clubs || [])
           .filter((c: any) => typeof c.latitude === 'number' && typeof c.longitude === 'number')
-          .map((c: any) => ({ id: c.id, name: c.name, city: c.city, lat: c.latitude, lng: c.longitude, activities: c.activities || [] }));
+          .map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            city: c.city,
+            lat: c.latitude,
+            lng: c.longitude,
+            activities: c.activities || [],
+            rating: c.rating,
+            reviewCount: c.reviewCount,
+            scheduleOpen: c.scheduleOpen,
+          }));
         clubsRef.current = geo;
         setClubs(geo);
         if (readyRef.current) renderMarkers(sup);
@@ -123,7 +152,26 @@ export default function HomePage() {
     const dot = L.divIcon({ html: '<div style="width:14px;height:14px;background:#FF5436;border:2.5px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>', className: '', iconSize: [14, 14] });
     clubsRef.current.forEach((c) => {
       if (filter && !c.activities.includes(filter)) return;
-      L.marker([c.lat, c.lng], { icon: dot }).bindPopup('<div class="cv-pop"><b>' + c.name + '</b><span>' + (c.activities.join(' · ') || c.city) + '</span></div>').addTo(cluster);
+
+      const rateHtml = c.rating
+        ? '<span class="pop-rate">★ ' + c.rating.toFixed(1)
+          + (c.reviewCount ? ' <span class="pop-reviews">(' + c.reviewCount + ' avis)</span>' : '') + '</span>'
+        : '';
+
+      const hours = todayHours(c.scheduleOpen);
+      const hoursHtml = hours ? '<span class="pop-hours">' + "Aujourd'hui : " + hours + '</span>' : '';
+
+      const actsHtml = c.activities.length
+        ? '<span class="pop-acts">' + c.activities.join(' · ') + '</span>'
+        : '';
+
+      const html = '<div class="cv-pop">'
+        + '<a class="pop-name" href="/club/' + c.id + '">' + escapeHtml(c.name) + '</a>'
+        + rateHtml + actsHtml + hoursHtml
+        + '<a class="pop-cta" href="/club/' + c.id + '">Voir la fiche du club →</a>'
+        + '</div>';
+
+      L.marker([c.lat, c.lng], { icon: dot }).bindPopup(html).addTo(cluster);
     });
   };
 
@@ -162,6 +210,11 @@ export default function HomePage() {
         <symbol id="ic-croisiere" viewBox="0 0 24 24"><path d="M3 18c3 2.4 15 2.4 18 0" /><path d="M12 3.5V16" /><path d="M12 5.5l4.5 9.5H12" /><path d="M12 7l-3.5 8H12" /></symbol>
         <symbol id="ic-paddle" viewBox="0 0 24 24"><path d="M3 17.5c4.5 3 14.5 3 18 0" /><path d="M15.5 4l-4.5 13.5" /><path d="M9 15l4.5 3" /></symbol>
         <symbol id="ic-all" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.2" /><circle cx="6" cy="18" r="2.2" /><circle cx="18" cy="6" r="2.2" /><circle cx="18" cy="18" r="2.2" /></symbol>
+        <symbol id="ic-moussaillon" viewBox="0 0 24 24"><path d="M4 16c2 2.5 14 2.5 16 0" /><path d="M10 4.5v11.5" /><path d="M10 5.5h5.5L10 11" /><circle cx="14" cy="19" r="1.3" /></symbol>
+        <symbol id="ic-windfoil" viewBox="0 0 24 24"><path d="M3 19c3.5 2.4 14.5 2.4 18 0" /><path d="M11 18v-2" /><path d="M11 16c1-7 3-9.5 6.5-11.5" /><path d="M11 16L17.5 4.5" /><path d="M11 11.5h4.5" /><path d="M6 21l2.5-4" /><path d="M16 21l-2.5-4" /></symbol>
+        <symbol id="ic-kitefoil" viewBox="0 0 24 24"><path d="M4 6q8-5 16 0" /><path d="M7 7.5l4.5 8" /><path d="M17 7.5l-4.5 8" /><path d="M9 15.5h6" /><path d="M12 15.5V19" /><path d="M8 21l4-2 4 2" /></symbol>
+        <symbol id="ic-surf" viewBox="0 0 24 24"><path d="M5 17c4-9 9-13 14-13-2 7-6 12-14 13Z" /><path d="M4 20c4-1 8-1.5 12-3.5" /></symbol>
+        <symbol id="ic-kayak" viewBox="0 0 24 24"><path d="M2 14c4 4 16 4 20 0-4-4-16-4-20 0Z" /><path d="M9 14h6" /><path d="M5 6l14 12" /><path d="M5.5 10l3-3" /><path d="M15.5 17l3-3" /></symbol>
       </defs></svg>
 
       <CvNav />
@@ -184,7 +237,7 @@ export default function HomePage() {
             <p className="lede">De l&apos;Optimist au wingfoil, de la Manche à la Corse. Choisissez votre support, votre coin de côte, et embarquez.</p>
             <div className="hero-stats">
               <div><div className="n">{count.toLocaleString('fr-FR')}</div><div className="l">Clubs référencés</div></div>
-              <div><div className="n">9</div><div className="l">Supports</div></div>
+              <div><div className="n">{SUPPORTS.length}</div><div className="l">Supports</div></div>
               <div><div className="n">26</div><div className="l">Départements côtiers</div></div>
             </div>
           </div>
