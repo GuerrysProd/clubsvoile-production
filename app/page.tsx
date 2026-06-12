@@ -35,6 +35,7 @@ type GeoClub = {
   rating?: number;
   reviewCount?: number;
   scheduleOpen?: string;
+  path?: string;
 };
 
 const DAYS_FR: Record<string, string> = {
@@ -94,6 +95,7 @@ export default function HomePage() {
             rating: c.rating,
             reviewCount: c.reviewCount,
             scheduleOpen: c.scheduleOpen,
+            path: c.path,
           }));
         clubsRef.current = geo;
         setClubs(geo);
@@ -165,10 +167,11 @@ export default function HomePage() {
         ? '<span class="pop-acts">' + c.activities.join(' · ') + '</span>'
         : '';
 
+      const href = c.path || ('/club/' + c.id);
       const html = '<div class="cv-pop">'
-        + '<a class="pop-name" href="/club/' + c.id + '">' + escapeHtml(c.name) + '</a>'
+        + '<a class="pop-name" href="' + href + '">' + escapeHtml(c.name) + '</a>'
         + rateHtml + actsHtml + hoursHtml
-        + '<a class="pop-cta" href="/club/' + c.id + '">Voir la fiche du club →</a>'
+        + '<a class="pop-cta" href="' + href + '">Voir la fiche du club →</a>'
         + '</div>';
 
       L.marker([c.lat, c.lng], { icon: dot }).bindPopup(html).addTo(cluster);

@@ -19,6 +19,8 @@ export interface Club {
   latitude?: number;
   longitude?: number;
   rating?: number;
+  reviewCount?: number;
+  path?: string;
   createdAt: Date;
   updated?: Date;
 }

@@ -6,7 +6,7 @@ import styles from '../layout.module.css';
 
 export default function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const useCvChrome = pathname === '/' || pathname === '/search' || pathname.startsWith('/club/');
+  const useCvChrome = !pathname.startsWith('/admin');
 
   return (
     <>

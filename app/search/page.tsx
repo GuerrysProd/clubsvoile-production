@@ -135,7 +135,7 @@ function SearchPageInner() {
                 </div>
                 <div className="search-grid">
                   {filteredClubs.map((club) => (
-                    <Link key={club.id} href={`/club/${club.id}`} className="result-card">
+                    <Link key={club.id} href={club.path || `/club/${club.id}`} className="result-card">
                       {!!club.rating && <span className="result-rate">★ {club.rating}</span>}
                       <h3>{club.name}</h3>
                       <div className="card-loc">

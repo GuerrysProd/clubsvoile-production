@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
+import { buildClubSlugs, buildClubPath } from '@/lib/geo';
 
 export async function GET() {
   try {
@@ -40,6 +41,8 @@ export async function GET() {
       if (!page || page.length < PAGE_SIZE || data.length >= total) break;
     }
 
+    const slugs = buildClubSlugs(data);
+
     const clubs = data.map((c) => ({
       id: c.id,
       name: c.name,
@@ -60,6 +63,7 @@ export async function GET() {
       rating: c.rating,
       reviewCount: c.review_count,
       scheduleOpen: c.schedule_open,
+      path: buildClubPath(c, slugs.get(c.id)!),
     }));
 
     return NextResponse.json({ clubs, total });
