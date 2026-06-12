@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import './home.css';
+import CvNav from './components/CvNav';
+import CvFooter from './components/CvFooter';
 
 /* ----------------------------- DONNÉES ----------------------------- */
 const SUPPORTS = [
@@ -162,17 +164,7 @@ export default function HomePage() {
         <symbol id="ic-all" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.2" /><circle cx="6" cy="18" r="2.2" /><circle cx="18" cy="6" r="2.2" /><circle cx="18" cy="18" r="2.2" /></symbol>
       </defs></svg>
 
-      <nav className="nav">
-        <div className="wrap nav-in">
-          <a href="/" className="logo"><span className="dot" />ClubsVoile.fr</a>
-          <div className="nav-links">
-            <a href="#supports">Supports</a>
-            <a href="#carte">La carte</a>
-            <a href="#clubs">Clubs</a>
-            <a href="/admin/login" className="nav-cta">Inscrire mon club</a>
-          </div>
-        </div>
-      </nav>
+      <CvNav />
 
       <header className="hero">
         <svg className="contours" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -332,22 +324,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="foot">
-        <div className="wrap">
-          <div className="foot-top">
-            <div>
-              <div className="foot-logo"><span className="dot" />ClubsVoile.fr</div>
-              <p style={{ marginTop: 12, maxWidth: 260 }}>L&apos;annuaire des clubs de voile français. De l&apos;Optimist à la croisière.</p>
-            </div>
-            <div className="foot-cols">
-              <div className="foot-col"><h4>Explorer</h4><a href="#supports">Supports</a><a href="#carte">La carte</a><a href="/search">Tous les clubs</a></div>
-              <div className="foot-col"><h4>Clubs</h4><a href="/admin/login">Inscrire un club</a><a href="/admin/login">Connexion</a></div>
-              <div className="foot-col"><h4>Contact</h4><a href="mailto:contact@clubsvoile.fr">contact@clubsvoile.fr</a></div>
-            </div>
-          </div>
-          <div className="foot-bottom">© 2026 ClubsVoile.fr — Tous droits réservés.</div>
-        </div>
-      </footer>
+      <CvFooter />
     </div>
   );
 }

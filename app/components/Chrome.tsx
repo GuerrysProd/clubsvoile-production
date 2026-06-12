@@ -6,13 +6,13 @@ import styles from '../layout.module.css';
 
 export default function Chrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isHome = pathname === '/';
+  const useCvChrome = pathname === '/' || pathname === '/search';
 
   return (
     <>
-      {!isHome && <Header />}
+      {!useCvChrome && <Header />}
       {children}
-      {!isHome && <Footer />}
+      {!useCvChrome && <Footer />}
     </>
   );
 }
