@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAdmin } from '@/lib/adminAuth';
+import { verifyAdmin, getJwtSecret } from '@/lib/adminAuth';
 import jwt from 'jsonwebtoken';
 
 export async function POST(request: NextRequest) {
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     const token = jwt.sign(
       { adminId, username },
-      process.env.NEXTAUTH_SECRET || 'secret',
+      getJwtSecret(),
       { expiresIn: '7d' }
     );
 

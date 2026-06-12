@@ -32,23 +32,7 @@ const CENTERS: Record<string, [number, number]> = {
   'Nouvelle-Aquitaine': [45, -1.1], Occitanie: [43.2, 3.2], "Provence-Alpes-Côte d'Azur": [43.3, 6.2], Corse: [42.1, 9.1],
 };
 
-const CLUBS: [string, number, number, string[]][] = [
-  ['SR Saint-Malo', 48.649, -2.026, ['Catamaran', 'Optimist', 'Croisière']], ['YC Dinard', 48.63, -2.06, ['Dériveur', 'Optimist']],
-  ['CN Brest', 48.39, -4.49, ['Croisière', 'Dériveur', 'Wingfoil']], ['CV Quiberon', 47.48, -3.12, ['Planche à voile', 'Wingfoil', 'Catamaran']],
-  ['SR Vannes', 47.65, -2.76, ['Optimist', 'Dériveur']], ['CN Lorient', 47.73, -3.37, ['Catamaran', 'Croisière']],
-  ['CN La Baule', 47.28, -2.39, ['Dériveur', 'Catamaran', 'Paddle']], ['Les Sables Voile', 46.5, -1.78, ['Optimist', 'Planche à voile']],
-  ['SR Rochelaises', 46.15, -1.15, ['Croisière', 'Catamaran', 'Wingfoil']], ['CV Royan', 45.62, -1.03, ['Catamaran', 'Paddle']],
-  ['CV Arcachon', 44.66, -1.17, ['Dériveur', 'Wingfoil', 'Paddle']], ['Hossegor Glisse', 43.66, -1.43, ['Wingfoil', 'eFoil', 'Kitesurf']],
-  ['CV Biarritz', 43.48, -1.56, ['Planche à voile', 'Kitesurf', 'eFoil']], ['YC Hendaye', 43.37, -1.79, ['Catamaran', 'Optimist']],
-  ['CN Sète', 43.4, 3.69, ['Planche à voile', 'Kitesurf', 'Wingfoil']], ['CV Agde', 43.29, 3.46, ['Optimist', 'Catamaran']],
-  ['CN Gruissan', 43.1, 3.1, ['Kitesurf', 'Wingfoil', 'Planche à voile']], ['CV Canet', 42.7, 3.03, ['Wingfoil', 'eFoil', 'Paddle']],
-  ['SN Marseille', 43.27, 5.36, ['Croisière', 'Dériveur', 'Wingfoil']], ['CV Cassis', 43.21, 5.54, ['Dériveur', 'Paddle']],
-  ['YC Hyères', 43.1, 6.13, ['Planche à voile', 'Kitesurf', 'Wingfoil', 'eFoil']], ['SN Saint-Tropez', 43.27, 6.64, ['Croisière', 'Catamaran']],
-  ['YC Cannes', 43.55, 7.02, ['Catamaran', 'Croisière', 'Wingfoil']], ['CN Nice', 43.69, 7.28, ['Dériveur', 'Paddle', 'eFoil']], ['CV Antibes', 43.58, 7.12, ['Optimist', 'Catamaran']],
-  ['CN Le Havre', 49.49, 0.1, ['Catamaran', 'Planche à voile']], ['CV Deauville', 49.36, 0.07, ['Optimist', 'Dériveur']],
-  ['CN Calais', 50.96, 1.85, ['Planche à voile', 'Kitesurf']], ['CV Dunkerque', 51.03, 2.37, ['Catamaran', 'Kitesurf', 'Wingfoil']],
-  ['YC Ajaccio', 41.92, 8.74, ['Croisière', 'Catamaran', 'Paddle']], ['CV Calvi', 42.57, 8.76, ['Dériveur', 'Wingfoil']], ['CN Bastia', 42.7, 9.45, ['Catamaran', 'Optimist']],
-];
+type GeoClub = { id: string; name: string; city: string; lat: number; lng: number; activities: string[] };
 
 const FEAT = [
   { n: 'Société des Régates de Saint-Malo', loc: 'Saint-Malo, Bretagne', r: '4.8', tag: 'Intra-muros', acts: ['Catamaran', 'Optimist', 'Croisière'], img: 'https://images.unsplash.com/photo-1502209877429-2c1f55a44f6d?w=600&q=70&auto=format&fit=crop' },
@@ -65,16 +49,31 @@ export default function HomePage() {
   const [region, setRegion] = useState('');
   const [dep, setDep] = useState('');
   const [city, setCity] = useState('');
-  const [count, setCount] = useState(1247);
+  const [count, setCount] = useState(0);
+  const [clubs, setClubs] = useState<GeoClub[]>([]);
 
   const mapRef = useRef<any>(null);
   const clusterRef = useRef<any>(null);
   const readyRef = useRef(false);
+  const clubsRef = useRef<GeoClub[]>([]);
 
   useEffect(() => {
-    let cur = 0; const tgt = 1247;
-    const t = setInterval(() => { cur += 37; if (cur >= tgt) { cur = tgt; clearInterval(t); } setCount(cur); }, 22);
-    return () => clearInterval(t);
+    fetch('/api/clubs')
+      .then(res => res.json())
+      .then(data => {
+        const geo: GeoClub[] = (data.clubs || [])
+          .filter((c: any) => typeof c.latitude === 'number' && typeof c.longitude === 'number')
+          .map((c: any) => ({ id: c.id, name: c.name, city: c.city, lat: c.latitude, lng: c.longitude, activities: c.activities || [] }));
+        clubsRef.current = geo;
+        setClubs(geo);
+        if (readyRef.current) renderMarkers(sup);
+
+        const tgt = data.total || geo.length;
+        let cur = 0;
+        const t = setInterval(() => { cur += Math.max(1, Math.ceil(tgt / 34)); if (cur >= tgt) { cur = tgt; clearInterval(t); } setCount(cur); }, 22);
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -120,15 +119,15 @@ export default function HomePage() {
     if (!L || !cluster) return;
     cluster.clearLayers();
     const dot = L.divIcon({ html: '<div style="width:14px;height:14px;background:#FF5436;border:2.5px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>', className: '', iconSize: [14, 14] });
-    CLUBS.forEach(([nm, la, ln, sups]) => {
-      if (filter && !sups.includes(filter)) return;
-      L.marker([la, ln], { icon: dot }).bindPopup('<div class="cv-pop"><b>' + nm + '</b><span>' + sups.join(' · ') + '</span></div>').addTo(cluster);
+    clubsRef.current.forEach((c) => {
+      if (filter && !c.activities.includes(filter)) return;
+      L.marker([c.lat, c.lng], { icon: dot }).bindPopup('<div class="cv-pop"><b>' + c.name + '</b><span>' + (c.activities.join(' · ') || c.city) + '</span></div>').addTo(cluster);
     });
   };
 
   useEffect(() => { if (readyRef.current) renderMarkers(sup); /* eslint-disable-next-line */ }, [sup]);
 
-  const visibleCount = sup ? CLUBS.filter(c => c[3].includes(sup)).length : CLUBS.length;
+  const visibleCount = sup ? clubs.filter(c => c.activities.includes(sup)).length : clubs.length;
 
   const chooseRegion = (r: string) => {
     setRegion(r); setDep(''); setCity('');

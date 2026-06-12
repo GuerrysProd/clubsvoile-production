@@ -16,6 +16,9 @@ export interface Club {
   activities: string[];    // ["Dériveur", "Catamaran", "Planche à voile"]
   ageRange?: string[];      // ["Enfants", "Ados", "Adultes"]
   scheduleOpen?: string;    // Horaires d'ouverture
+  latitude?: number;
+  longitude?: number;
+  rating?: number;
   createdAt: Date;
   updated?: Date;
 }

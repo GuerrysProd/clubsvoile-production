@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { getJwtSecret } from '@/lib/adminAuth';
 import jwt from 'jsonwebtoken';
 
 function verifyToken(request: NextRequest) {
   const token = request.headers.get('authorization')?.split(' ')[1];
   if (!token) return null;
-  
+
   try {
-    return jwt.verify(token, process.env.NEXTAUTH_SECRET || 'secret');
+    return jwt.verify(token, getJwtSecret());
   } catch {
     return null;
   }

@@ -1,6 +1,12 @@
 import bcrypt from 'bcryptjs';
 import { supabase } from './supabase';
 
+export function getJwtSecret() {
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret) throw new Error('NEXTAUTH_SECRET is not set');
+  return secret;
+}
+
 export async function verifyAdmin(username: string, password: string) {
   try {
     const { data, error } = await supabase
