@@ -6,13 +6,18 @@ import { SearchFilters } from '@/lib/types';
 import styles from './SearchBar.module.css';
 
 interface SearchBarProps {
-  regions: string[];
-  cities: string[];
-  activities: string[];
+  regions?: string[];
+  cities?: string[];
+  activities?: string[];
   onSearch: (filters: SearchFilters) => void;
 }
 
-export default function SearchBar({ regions, cities, activities, onSearch }: SearchBarProps) {
+export default function SearchBar({
+  regions = [],
+  cities = [],
+  activities = [],
+  onSearch,
+}: SearchBarProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedCity, setSelectedCity] = useState('');

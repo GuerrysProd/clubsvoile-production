@@ -5,15 +5,7 @@ import ClubCard from '@/app/components/ClubCard';
 import SearchBar from '@/app/components/SearchBar';
 import styles from './search.module.css';
 
-interface Club {
-  id: string;
-  name: string;
-  city: string;
-  region: string;
-  rating: number;
-  review_count: number;
-  activities: string[];
-}
+import type { Club } from '@/lib/types';
 
 export default function SearchPage() {
   const [clubs, setClubs] = useState<Club[]>([]);
