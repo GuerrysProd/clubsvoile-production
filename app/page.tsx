@@ -1,170 +1,354 @@
-// app/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import styles from './page.module.css';
+import { useEffect, useRef, useState } from 'react';
+import './home.css';
 
+/* ----------------------------- DONNÉES ----------------------------- */
+const SUPPORTS = [
+  { k: 'Wingfoil', ic: 'ic-wing', d: 'La glisse qui monte', trend: true },
+  { k: 'eFoil', ic: 'ic-efoil', d: 'Vol électrique', trend: true },
+  { k: 'Kitesurf', ic: 'ic-kite', d: 'Traction & sauts', trend: true },
+  { k: 'Catamaran', ic: 'ic-cata', d: 'Vitesse à deux coques' },
+  { k: 'Optimist', ic: 'ic-opti', d: 'Le premier bateau' },
+  { k: 'Dériveur', ic: 'ic-deriveur', d: "L'école de la voile" },
+  { k: 'Planche à voile', ic: 'ic-windsurf', d: 'Le grand classique' },
+  { k: 'Croisière', ic: 'ic-croisiere', d: 'Le large en habitable' },
+  { k: 'Paddle', ic: 'ic-paddle', d: 'Balade au calme' },
+];
+
+const GEO: Record<string, Record<string, string[]>> = {
+  'Hauts-de-France': { Nord: ['Dunkerque', 'Gravelines'], 'Pas-de-Calais': ['Calais', 'Boulogne-sur-Mer', 'Le Touquet'] },
+  Normandie: { 'Seine-Maritime': ['Le Havre', 'Dieppe', 'Fécamp'], Calvados: ['Deauville', 'Ouistreham', 'Honfleur'], Manche: ['Cherbourg', 'Granville'] },
+  Bretagne: { 'Ille-et-Vilaine': ['Saint-Malo', 'Dinard'], "Côtes-d'Armor": ['Paimpol', 'Perros-Guirec'], Finistère: ['Brest', 'Concarneau', 'Douarnenez'], Morbihan: ['Lorient', 'Vannes', 'Quiberon', 'Carnac'] },
+  'Pays de la Loire': { 'Loire-Atlantique': ['La Baule', 'Pornic', 'Saint-Nazaire'], Vendée: ["Les Sables-d'Olonne", 'Saint-Gilles-Croix-de-Vie', 'Noirmoutier'] },
+  'Nouvelle-Aquitaine': { 'Charente-Maritime': ['La Rochelle', 'Royan', 'Île de Ré'], Gironde: ['Arcachon', 'Lacanau'], Landes: ['Hossegor', 'Capbreton'], 'Pyrénées-Atlantiques': ['Biarritz', 'Saint-Jean-de-Luz', 'Hendaye'] },
+  Occitanie: { Hérault: ['Sète', 'Agde', 'Palavas-les-Flots'], Aude: ['Gruissan', 'Port-la-Nouvelle'], 'Pyrénées-Orientales': ['Canet-en-Roussillon', 'Argelès-sur-Mer', 'Collioure'], Gard: ['Le Grau-du-Roi'] },
+  "Provence-Alpes-Côte d'Azur": { 'Bouches-du-Rhône': ['Marseille', 'Cassis', 'La Ciotat'], Var: ['Toulon', 'Hyères', 'Saint-Tropez', 'Fréjus'], 'Alpes-Maritimes': ['Nice', 'Antibes', 'Cannes', 'Menton'] },
+  Corse: { 'Corse-du-Sud': ['Ajaccio', 'Porto-Vecchio', 'Bonifacio'], 'Haute-Corse': ['Bastia', 'Calvi', 'Saint-Florent'] },
+};
+
+const CENTERS: Record<string, [number, number]> = {
+  'Hauts-de-France': [50.9, 1.9], Normandie: [49.5, -0.5], Bretagne: [48.2, -3.5], 'Pays de la Loire': [47, -2],
+  'Nouvelle-Aquitaine': [45, -1.1], Occitanie: [43.2, 3.2], "Provence-Alpes-Côte d'Azur": [43.3, 6.2], Corse: [42.1, 9.1],
+};
+
+const CLUBS: [string, number, number, string[]][] = [
+  ['SR Saint-Malo', 48.649, -2.026, ['Catamaran', 'Optimist', 'Croisière']], ['YC Dinard', 48.63, -2.06, ['Dériveur', 'Optimist']],
+  ['CN Brest', 48.39, -4.49, ['Croisière', 'Dériveur', 'Wingfoil']], ['CV Quiberon', 47.48, -3.12, ['Planche à voile', 'Wingfoil', 'Catamaran']],
+  ['SR Vannes', 47.65, -2.76, ['Optimist', 'Dériveur']], ['CN Lorient', 47.73, -3.37, ['Catamaran', 'Croisière']],
+  ['CN La Baule', 47.28, -2.39, ['Dériveur', 'Catamaran', 'Paddle']], ['Les Sables Voile', 46.5, -1.78, ['Optimist', 'Planche à voile']],
+  ['SR Rochelaises', 46.15, -1.15, ['Croisière', 'Catamaran', 'Wingfoil']], ['CV Royan', 45.62, -1.03, ['Catamaran', 'Paddle']],
+  ['CV Arcachon', 44.66, -1.17, ['Dériveur', 'Wingfoil', 'Paddle']], ['Hossegor Glisse', 43.66, -1.43, ['Wingfoil', 'eFoil', 'Kitesurf']],
+  ['CV Biarritz', 43.48, -1.56, ['Planche à voile', 'Kitesurf', 'eFoil']], ['YC Hendaye', 43.37, -1.79, ['Catamaran', 'Optimist']],
+  ['CN Sète', 43.4, 3.69, ['Planche à voile', 'Kitesurf', 'Wingfoil']], ['CV Agde', 43.29, 3.46, ['Optimist', 'Catamaran']],
+  ['CN Gruissan', 43.1, 3.1, ['Kitesurf', 'Wingfoil', 'Planche à voile']], ['CV Canet', 42.7, 3.03, ['Wingfoil', 'eFoil', 'Paddle']],
+  ['SN Marseille', 43.27, 5.36, ['Croisière', 'Dériveur', 'Wingfoil']], ['CV Cassis', 43.21, 5.54, ['Dériveur', 'Paddle']],
+  ['YC Hyères', 43.1, 6.13, ['Planche à voile', 'Kitesurf', 'Wingfoil', 'eFoil']], ['SN Saint-Tropez', 43.27, 6.64, ['Croisière', 'Catamaran']],
+  ['YC Cannes', 43.55, 7.02, ['Catamaran', 'Croisière', 'Wingfoil']], ['CN Nice', 43.69, 7.28, ['Dériveur', 'Paddle', 'eFoil']], ['CV Antibes', 43.58, 7.12, ['Optimist', 'Catamaran']],
+  ['CN Le Havre', 49.49, 0.1, ['Catamaran', 'Planche à voile']], ['CV Deauville', 49.36, 0.07, ['Optimist', 'Dériveur']],
+  ['CN Calais', 50.96, 1.85, ['Planche à voile', 'Kitesurf']], ['CV Dunkerque', 51.03, 2.37, ['Catamaran', 'Kitesurf', 'Wingfoil']],
+  ['YC Ajaccio', 41.92, 8.74, ['Croisière', 'Catamaran', 'Paddle']], ['CV Calvi', 42.57, 8.76, ['Dériveur', 'Wingfoil']], ['CN Bastia', 42.7, 9.45, ['Catamaran', 'Optimist']],
+];
+
+const FEAT = [
+  { n: 'Société des Régates de Saint-Malo', loc: 'Saint-Malo, Bretagne', r: '4.8', tag: 'Intra-muros', acts: ['Catamaran', 'Optimist', 'Croisière'], img: 'https://images.unsplash.com/photo-1502209877429-2c1f55a44f6d?w=600&q=70&auto=format&fit=crop' },
+  { n: 'Yacht Club de Hyères', loc: 'Hyères, PACA', r: '4.7', tag: "Presqu'île de Giens", acts: ['Wingfoil', 'Kitesurf', 'Planche à voile'], img: 'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=600&q=70&auto=format&fit=crop' },
+  { n: 'Centre Nautique de La Rochelle', loc: 'La Rochelle, N.-Aquitaine', r: '4.9', tag: 'Les Minimes', acts: ['Croisière', 'Catamaran', 'Paddle'], img: 'https://images.unsplash.com/photo-1543242594-c8bae8b9e708?w=600&q=70&auto=format&fit=crop' },
+  { n: 'Hossegor Glisse', loc: 'Hossegor, Landes', r: '4.8', tag: 'Spot de glisse', acts: ['Wingfoil', 'eFoil', 'Kitesurf'], img: 'https://images.unsplash.com/photo-1502933691298-84fc14542831?w=600&q=70&auto=format&fit=crop' },
+  { n: 'Cercle Nautique de Sète', loc: 'Sète, Occitanie', r: '4.6', tag: 'Étang de Thau', acts: ['Kitesurf', 'Wingfoil', 'Planche à voile'], img: 'https://images.unsplash.com/photo-1566024287286-457247b70310?w=600&q=70&auto=format&fit=crop' },
+  { n: 'Yacht Club de Cannes', loc: "Cannes, Côte d'Azur", r: '4.7', tag: 'Baie de Cannes', acts: ['Catamaran', 'Croisière', 'Wingfoil'], img: 'https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=600&q=70&auto=format&fit=crop' },
+];
+
+/* ----------------------------- COMPOSANT ----------------------------- */
 export default function HomePage() {
-  const [stats, setStats] = useState({
-    clubsCount: 0,
-    regionsCount: 0,
-    activitiesCount: 0,
-  });
+  const [sup, setSup] = useState('');
+  const [region, setRegion] = useState('');
+  const [dep, setDep] = useState('');
+  const [city, setCity] = useState('');
+  const [count, setCount] = useState(1247);
+
+  const mapRef = useRef<any>(null);
+  const clusterRef = useRef<any>(null);
+  const readyRef = useRef(false);
 
   useEffect(() => {
-    // Fetch stats from API
-    fetchStats();
+    let cur = 0; const tgt = 1247;
+    const t = setInterval(() => { cur += 37; if (cur >= tgt) { cur = tgt; clearInterval(t); } setCount(cur); }, 22);
+    return () => clearInterval(t);
   }, []);
 
-  async function fetchStats() {
-    try {
-      const res = await fetch('/api/clubs?limit=1');
-      const data = await res.json();
-      setStats({
-        clubsCount: data.total || 0,
-        regionsCount: 18,
-        activitiesCount: 8,
+  useEffect(() => {
+    const addCss = (href: string) => {
+      if (document.querySelector(`link[href="${href}"]`)) return;
+      const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l);
+    };
+    addCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css');
+    addCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css');
+    addCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css');
+
+    const loadScript = (src: string) => new Promise<void>((res) => {
+      if (document.querySelector(`script[src="${src}"]`)) return res();
+      const s = document.createElement('script'); s.src = src; s.onload = () => res(); document.body.appendChild(s);
+    });
+
+    let cancelled = false;
+    (async () => {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js');
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js');
+      if (cancelled) return;
+      const L = (window as any).L;
+      if (!L || mapRef.current) return;
+      const map = L.map('cv-map', { scrollWheelZoom: false }).setView([46.6, 2.2], 5.4);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+      const cluster = L.markerClusterGroup({
+        maxClusterRadius: 55, showCoverageOnHover: false,
+        iconCreateFunction: (c: any) => L.divIcon({ html: '<div>' + c.getChildCount() + '</div>', className: 'marker-cluster marker-cluster-cv', iconSize: [40, 40] }),
       });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  }
+      map.addLayer(cluster);
+      map.on('click', () => map.scrollWheelZoom.enable());
+      mapRef.current = map; clusterRef.current = cluster; readyRef.current = true;
+      renderMarkers('');
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const renderMarkers = (filter: string) => {
+    const L = (window as any).L;
+    const cluster = clusterRef.current;
+    if (!L || !cluster) return;
+    cluster.clearLayers();
+    const dot = L.divIcon({ html: '<div style="width:14px;height:14px;background:#FF5436;border:2.5px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>', className: '', iconSize: [14, 14] });
+    CLUBS.forEach(([nm, la, ln, sups]) => {
+      if (filter && !sups.includes(filter)) return;
+      L.marker([la, ln], { icon: dot }).bindPopup('<div class="cv-pop"><b>' + nm + '</b><span>' + sups.join(' · ') + '</span></div>').addTo(cluster);
+    });
+  };
+
+  useEffect(() => { if (readyRef.current) renderMarkers(sup); /* eslint-disable-next-line */ }, [sup]);
+
+  const visibleCount = sup ? CLUBS.filter(c => c[3].includes(sup)).length : CLUBS.length;
+
+  const chooseRegion = (r: string) => {
+    setRegion(r); setDep(''); setCity('');
+    if (r && mapRef.current && CENTERS[r]) mapRef.current.flyTo(CENTERS[r], 8, { duration: 1.1 });
+  };
+  const pickSupport = (k: string, scroll: boolean) => {
+    setSup(k);
+    if (scroll) document.getElementById('carte')?.scrollIntoView({ behavior: 'smooth' });
+  };
+  const voirLesClubs = () => {
+    const p = new URLSearchParams();
+    if (sup) p.set('support', sup);
+    if (region) p.set('region', region);
+    if (dep) p.set('departement', dep);
+    if (city) p.set('ville', city);
+    const qs = p.toString();
+    window.location.href = '/search' + (qs ? '?' + qs : '');
+  };
 
   return (
-    <main className={styles.main}>
-      {/* HERO SECTION - Sportif & Aventure */}
-      <section className={styles.hero}>
-        <div className={styles.heroContent}>
-          <div className={styles.heroText}>
-            <h1 className={styles.heroTitle}>
-              Découvrez les meilleurs clubs de voile en France
-            </h1>
-            <p className={styles.heroSubtitle}>
-              Plus de {stats.clubsCount}+ clubs, {stats.regionsCount} régions, une seule plateforme.
-              Trouvez votre prochain spot et embarquez pour l'aventure ! 🌊
-            </p>
-            <div className={styles.heroCTA}>
-              <Link href="/search" className={`${styles.btn} ${styles.btnPrimary}`}>
-                Explorez les clubs →
-              </Link>
-              <Link href="#how-it-works" className={`${styles.btn} ${styles.btnSecondary}`}>
-                Découvrez comment ça marche
-              </Link>
+    <div className="cv">
+      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true"><defs>
+        <symbol id="ic-wing" viewBox="0 0 24 24"><path d="M4 6c4-2.5 9-2.5 14 0" /><path d="M11 4.5V10" /><path d="M5 15h13" /><path d="M11.5 15v4" /><path d="M8 19.5h7" /></symbol>
+        <symbol id="ic-efoil" viewBox="0 0 24 24"><path d="M4 15h12" /><path d="M10 15v4" /><path d="M7 19.5h6" /><path d="M16 3.5l-3 5h3l-3 5" /></symbol>
+        <symbol id="ic-kite" viewBox="0 0 24 24"><path d="M4 6q8-5 16 0" /><path d="M7 7.5l4.5 8" /><path d="M17 7.5l-4.5 8" /><path d="M9 15.5h6" /><path d="M8.5 20h7" /><path d="M12 15.5V20" /></symbol>
+        <symbol id="ic-cata" viewBox="0 0 24 24"><path d="M3 18h7" /><path d="M14 18h7" /><path d="M10 18h4" /><path d="M12 4.5V18" /><path d="M12 6l5.5 10.5H12" /></symbol>
+        <symbol id="ic-opti" viewBox="0 0 24 24"><path d="M5 16c1.5 3 12.5 3 14 0" /><path d="M11 4v12" /><path d="M11 5h6v8.5h-6" /></symbol>
+        <symbol id="ic-deriveur" viewBox="0 0 24 24"><path d="M4 17c2.5 2.4 13.5 2.4 16 0" /><path d="M10 4v13" /><path d="M10 5.5l6 11.5H10" /></symbol>
+        <symbol id="ic-windsurf" viewBox="0 0 24 24"><path d="M3 19c3.5 2.4 14.5 2.4 18 0" /><path d="M11 18v-2" /><path d="M11 16c1-7 3-9.5 6.5-11.5" /><path d="M11 16L17.5 4.5" /><path d="M11 11.5h4.5" /></symbol>
+        <symbol id="ic-croisiere" viewBox="0 0 24 24"><path d="M3 18c3 2.4 15 2.4 18 0" /><path d="M12 3.5V16" /><path d="M12 5.5l4.5 9.5H12" /><path d="M12 7l-3.5 8H12" /></symbol>
+        <symbol id="ic-paddle" viewBox="0 0 24 24"><path d="M3 17.5c4.5 3 14.5 3 18 0" /><path d="M15.5 4l-4.5 13.5" /><path d="M9 15l4.5 3" /></symbol>
+        <symbol id="ic-all" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.2" /><circle cx="6" cy="18" r="2.2" /><circle cx="18" cy="6" r="2.2" /><circle cx="18" cy="18" r="2.2" /></symbol>
+      </defs></svg>
+
+      <nav className="nav">
+        <div className="wrap nav-in">
+          <a href="/" className="logo"><span className="dot" />ClubsVoile.fr</a>
+          <div className="nav-links">
+            <a href="#supports">Supports</a>
+            <a href="#carte">La carte</a>
+            <a href="#clubs">Clubs</a>
+            <a href="/admin/login" className="nav-cta">Inscrire mon club</a>
+          </div>
+        </div>
+      </nav>
+
+      <header className="hero">
+        <svg className="contours" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g fill="none" stroke="#1B4368" strokeWidth="1.5">
+            <path d="M-50 120 C 200 60, 420 180, 650 110 S 1050 40, 1280 140" />
+            <path d="M-50 200 C 220 150, 440 260, 680 190 S 1060 130, 1280 220" />
+            <path d="M-50 300 C 240 250, 470 360, 700 290 S 1080 230, 1280 320" />
+            <path d="M-50 410 C 250 360, 480 470, 720 400 S 1090 340, 1280 430" stroke="#FF5436" strokeOpacity=".4" />
+            <path d="M-50 520 C 260 470, 500 580, 740 510 S 1100 450, 1280 540" />
+            <path d="M-50 630 C 270 580, 520 690, 760 620 S 1110 560, 1280 650" />
+          </g>
+        </svg>
+        <div className="wrap hero-in">
+          <div className="hero-copy">
+            <span className="eyebrow">1 200+ clubs · tous les littoraux</span>
+            <h1>Votre prochain club<br />de voile,<br /><em>partout en France.</em></h1>
+            <p className="lede">De l&apos;Optimist au wingfoil, de la Manche à la Corse. Choisissez votre support, votre coin de côte, et embarquez.</p>
+            <div className="hero-stats">
+              <div><div className="n">{count.toLocaleString('fr-FR')}</div><div className="l">Clubs référencés</div></div>
+              <div><div className="n">9</div><div className="l">Supports</div></div>
+              <div><div className="n">26</div><div className="l">Départements côtiers</div></div>
             </div>
           </div>
 
-          <div className={styles.heroVisual}>
-            <div className={styles.heroAnimation}>
-              <svg
-                width="300"
-                height="300"
-                viewBox="0 0 300 300"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* Sailboat animation */}
-                <circle cx="150" cy="150" r="140" stroke="#00d4ff" strokeWidth="2" opacity="0.2" />
-                <path
-                  d="M 150 80 L 120 200 L 180 200 Z"
-                  fill="#00d4ff"
-                  opacity="0.8"
-                  className={styles.sailAnimation}
-                />
-                <circle cx="150" cy="200" r="15" fill="#0066cc" />
-              </svg>
+          <div className="sim">
+            <div className="sim-head">Trouvez votre club <span className="badge">Simulateur</span></div>
+            <p className="sim-sub">Affinez en quelques clics. On vous emmène au bon endroit.</p>
+            <div className="field">
+              <label>Support</label>
+              <select value={sup} onChange={(e) => setSup(e.target.value)}>
+                <option value="">Tous les supports</option>
+                {SUPPORTS.map(s => <option key={s.k}>{s.k}</option>)}
+              </select>
+            </div>
+            <div className="field">
+              <label>Région</label>
+              <select value={region} onChange={(e) => chooseRegion(e.target.value)}>
+                <option value="">Toutes les régions</option>
+                {Object.keys(GEO).map(r => <option key={r}>{r}</option>)}
+              </select>
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Département</label>
+                <select value={dep} disabled={!region} onChange={(e) => { setDep(e.target.value); setCity(''); }}>
+                  <option value="">{region ? 'Tous les départements' : '—'}</option>
+                  {region && Object.keys(GEO[region]).map(d => <option key={d}>{d}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label>Ville</label>
+                <select value={city} disabled={!dep} onChange={(e) => setCity(e.target.value)}>
+                  <option value="">{dep ? 'Toutes les villes' : '—'}</option>
+                  {region && dep && GEO[region][dep].map(v => <option key={v}>{v}</option>)}
+                </select>
+              </div>
+            </div>
+            <button className="sim-go" onClick={voirLesClubs}>
+              Voir les clubs
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <section className="block supports" id="supports">
+        <div className="wrap">
+          <div className="sec-eyebrow">Choisissez votre support</div>
+          <h2 className="sec-title">Ce que vous voulez naviguer décide de tout.</h2>
+          <p className="sec-intro">Les nouvelles glisses ou les grands classiques — cliquez sur un support pour voir les clubs qui le proposent sur la carte.</p>
+          <div className="sup-grid">
+            {SUPPORTS.map(s => (
+              <div key={s.k} className={'sup' + (sup === s.k ? ' active' : '')} onClick={() => pickSupport(s.k, true)}>
+                {s.trend && <span className="trend">Tendance</span>}
+                <svg className="ic"><use href={'#' + s.ic} /></svg>
+                <h3>{s.k}</h3><p>{s.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <svg className="wave" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 46 V20 C 200 0 400 40 600 24 S 1000 0 1200 22 V46 Z" /></svg>
+
+      <section className="block map-block" id="carte">
+        <div className="wrap">
+          <div className="sec-eyebrow">La carte vivante</div>
+          <h2 className="sec-title">Tous les clubs, d&apos;un seul regard.</h2>
+          <p className="sec-intro">Dézoomez et les clubs se regroupent par zone. Filtrez par support pour ne voir que ce qui vous intéresse.</p>
+          <div className="filterbar">
+            <button className={'fchip' + (sup === '' ? ' active' : '')} onClick={() => setSup('')}>
+              <svg className="ic"><use href="#ic-all" /></svg>Tous
+            </button>
+            {SUPPORTS.map(s => (
+              <button key={s.k} className={'fchip' + (sup === s.k ? ' active' : '')} onClick={() => setSup(s.k)}>
+                <svg className="ic"><use href={'#' + s.ic} /></svg>{s.k}
+              </button>
+            ))}
+          </div>
+          <div className="map-shell">
+            <div id="cv-map" />
+            <div className="map-meta"><span className="chip">{visibleCount}</span><b>{sup ? 'clubs · ' + sup : 'clubs affichés'}</b></div>
+          </div>
+        </div>
+      </section>
+
+      <svg className="wave" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 V26 C 200 46 400 6 600 22 S 1000 46 1200 24 V0 Z" /></svg>
+
+      <section className="block steps">
+        <div className="wrap">
+          <div className="sec-eyebrow">Comment ça marche</div>
+          <h2 className="sec-title">Du choix du support à l&apos;eau, en quatre temps.</h2>
+          <div className="steps-grid">
+            <div className="step"><div className="num">01</div><h3>Choisissez</h3><p>Votre support et votre coin de littoral, du Nord à la Corse.</p></div>
+            <div className="step"><div className="num">02</div><h3>Comparez</h3><p>Notes, activités, horaires et contacts réunis sur une seule fiche.</p></div>
+            <div className="step"><div className="num">03</div><h3>Contactez</h3><p>Téléphone, mail ou site du club, en un clic.</p></div>
+            <div className="step"><div className="num">04</div><h3>Naviguez</h3><p>Réservez votre stage ou votre séance, et prenez le large.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="block clubs" id="clubs">
+        <div className="wrap">
+          <div className="sec-eyebrow">À l&apos;affiche</div>
+          <h2 className="sec-title">Quelques clubs qui valent le détour.</h2>
+          <div className="cards">
+            {FEAT.map(c => (
+              <article key={c.n} className="card">
+                <div className="card-img">
+                  <img src={c.img} alt="" loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} />
+                  <span className="card-tag">{c.tag}</span><span className="card-rate">★ {c.r}</span>
+                </div>
+                <div className="card-body">
+                  <h3>{c.n}</h3>
+                  <div className="card-loc">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-6.3-7-11a7 7 0 0114 0c0 4.7-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
+                    {c.loc}
+                  </div>
+                  <div className="card-acts">{c.acts.map(a => <span key={a} className="pill">{a}</span>)}</div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="block cta-wrap">
+        <div className="wrap">
+          <div className="strip">
+            <svg className="cstripwave" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="#fff" strokeWidth="2"><path d="M-50 80 C 250 30 450 130 750 70 S 1150 20 1280 90" /><path d="M-50 170 C 250 120 450 220 750 160 S 1150 110 1280 180" /><path d="M-50 250 C 250 200 450 300 750 240 S 1150 190 1280 260" /></g></svg>
+            <div>
+              <h2>Vous gérez un club&nbsp;? Prenez le large avec nous.</h2>
+              <p>Mettez à jour votre fiche, vos supports et vos photos. Des milliers de passionnés cherchent leur prochain spot.</p>
+            </div>
+            <a href="/admin/login" className="strip-btn">Inscrire mon club →</a>
+          </div>
+        </div>
+      </section>
+
+      <footer className="foot">
+        <div className="wrap">
+          <div className="foot-top">
+            <div>
+              <div className="foot-logo"><span className="dot" />ClubsVoile.fr</div>
+              <p style={{ marginTop: 12, maxWidth: 260 }}>L&apos;annuaire des clubs de voile français. De l&apos;Optimist à la croisière.</p>
+            </div>
+            <div className="foot-cols">
+              <div className="foot-col"><h4>Explorer</h4><a href="#supports">Supports</a><a href="#carte">La carte</a><a href="/search">Tous les clubs</a></div>
+              <div className="foot-col"><h4>Clubs</h4><a href="/admin/login">Inscrire un club</a><a href="/admin/login">Connexion</a></div>
+              <div className="foot-col"><h4>Contact</h4><a href="mailto:contact@clubsvoile.fr">contact@clubsvoile.fr</a></div>
             </div>
           </div>
+          <div className="foot-bottom">© 2026 ClubsVoile.fr — Tous droits réservés.</div>
         </div>
-      </section>
-
-      {/* STATS SECTION */}
-      <section className={styles.stats}>
-        <div className={styles.statsContainer}>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{stats.clubsCount}+</div>
-            <div className={styles.statLabel}>Clubs actifs</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{stats.regionsCount}</div>
-            <div className={styles.statLabel}>Régions en France</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{stats.activitiesCount}</div>
-            <div className={styles.statLabel}>Types d'activités</div>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className={styles.howItWorks} id="how-it-works">
-        <h2>Comment ça marche ? 🎯</h2>
-        <div className={styles.stepsGrid}>
-          <div className={styles.step}>
-            <div className={styles.stepNumber}>1</div>
-            <h3>Cherchez</h3>
-            <p>Recherchez un club par ville, région ou activité</p>
-          </div>
-          <div className={styles.step}>
-            <div className={styles.stepNumber}>2</div>
-            <h3>Découvrez</h3>
-            <p>Consultez les infos, avis et photos des clubs</p>
-          </div>
-          <div className={styles.step}>
-            <div className={styles.stepNumber}>3</div>
-            <h3>Contactez</h3>
-            <p>Appelez ou écrivez directement pour plus d'infos</p>
-          </div>
-          <div className={styles.step}>
-            <div className={styles.stepNumber}>4</div>
-            <h3>Naviguez ! 🌊</h3>
-            <p>Embarquez et profitez de votre nouveau club</p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA SECTION */}
-      <section className={styles.ctaSection}>
-        <div className={styles.ctaContent}>
-          <h2>Vous gérez un club de voile ?</h2>
-          <p>Rejoignez ClubsVoile et améliorez votre visibilité auprès de milliers de passionnés</p>
-          <div className={styles.ctaButtons}>
-            <Link href="/club/register" className={`${styles.btn} ${styles.btnPrimary}`}>
-              Inscrire mon club
-            </Link>
-            <Link href="mailto:contact@clubsvoile.fr" className={`${styles.btn} ${styles.btnSecondary}`}>
-              Questions ?
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section className={styles.features}>
-        <h2>Pourquoi ClubsVoile ? ⚡</h2>
-        <div className={styles.featuresGrid}>
-          <div className={styles.feature}>
-            <div className={styles.featureIcon}>🗺️</div>
-            <h3>Carte interactive</h3>
-            <p>Visualisez les clubs sur la map en temps réel</p>
-          </div>
-          <div className={styles.feature}>
-            <div className={styles.featureIcon}>⭐</div>
-            <h3>Avis certifiés</h3>
-            <p>Lisez les avis d'autres navigateurs comme vous</p>
-          </div>
-          <div className={styles.feature}>
-            <div className={styles.featureIcon}>📱</div>
-            <h3>Mobile-friendly</h3>
-            <p>Accédez à ClubsVoile partout, sur tous les appareils</p>
-          </div>
-          <div className={styles.feature}>
-            <div className={styles.featureIcon}>🚀</div>
-            <h3>Données à jour</h3>
-            <p>Infos fraîches mise à jour chaque semaine</p>
-          </div>
-        </div>
-      </section>
-    </main>
+      </footer>
+    </div>
   );
 }
