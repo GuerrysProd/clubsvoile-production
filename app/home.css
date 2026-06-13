@@ -78,8 +78,8 @@
 .cv .fchip:hover{border-color:rgba(255,255,255,.5);color:#fff}
 .cv .fchip.active{background:var(--coral);border-color:var(--coral);color:#fff}
 .cv .map-shell{margin-top:22px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.12);position:relative}
-.cv #cv-map{height:520px;width:100%;background:var(--ink-2)}
-@media(max-width:720px){.cv #cv-map{height:430px}}
+.cv #cv-map,.cv #cv-act-map{height:520px;width:100%;background:var(--ink-2)}
+@media(max-width:720px){.cv #cv-map,.cv #cv-act-map{height:430px}}
 .cv .map-meta{position:absolute;z-index:500;left:16px;bottom:16px;background:rgba(11,30,51,.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px 15px;font-size:12.5px;color:rgba(255,255,255,.82)}
 .cv .map-meta b{color:#fff;font-weight:600}
 .cv .map-meta .chip{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--coral);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:11px;font-family:var(--display);vertical-align:-6px;margin-right:6px}
@@ -240,6 +240,22 @@
 .cv .btn-outline{height:50px;border:1.5px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);font-family:var(--body);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;transition:border-color .2s,color .2s}
 .cv .btn-outline:hover{border-color:var(--coral);color:var(--coral-deep)}
 .cv .sim-go.as-link{text-decoration:none}
+
+/* ----- Page /activites ----- */
+.cv .act-hero .breadcrumb span:last-child{color:rgba(255,255,255,.74)}
+.cv .act-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:22px}
+.cv .act-card{display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;text-decoration:none;color:var(--ink);transition:transform .2s,box-shadow .2s}
+.cv .act-card:hover{transform:translateY(-5px);box-shadow:0 24px 50px -28px rgba(11,30,51,.45)}
+.cv .act-img{position:relative;height:150px;background-size:cover;background-position:center}
+.cv .act-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,30,51,0) 40%,rgba(11,30,51,.55) 100%)}
+.cv .act-img .trend{position:absolute;top:14px;right:14px;z-index:2;background:var(--coral);color:#fff;font-size:10.5px;font-weight:600;text-transform:uppercase;padding:4px 9px;border-radius:100px}
+.cv .act-icon{position:absolute;bottom:12px;left:14px;z-index:2;width:30px;height:30px;color:#fff}
+.cv .act-body{padding:18px 20px 22px;display:flex;flex-direction:column;gap:8px;flex:1}
+.cv .act-body h3{font-family:var(--display);font-weight:700;font-size:18px;margin:0;color:var(--ink)}
+.cv .act-body p{font-size:13.5px;color:rgba(11,30,51,.55);margin:0;flex:1}
+.cv .act-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.cv .count-badge{font-size:12.5px;font-weight:600;color:var(--coral-deep);background:rgba(255,84,54,.1);padding:4px 10px;border-radius:100px}
+.cv .age-badge{font-size:12.5px;font-weight:600;color:var(--teal);background:rgba(14,92,92,.09);padding:4px 10px;border-radius:100px}
 
 /* ----- Leaflet (éléments générés hors React) ----- */
 .marker-cluster-cv{background:rgba(255,84,54,.28)}

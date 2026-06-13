@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getGeoIndex } from '@/lib/clubsData';
+import { ACTIVITIES } from '@/lib/activities';
+import { slugify } from '@/lib/slug';
 
 export async function GET() {
   const index = await getGeoIndex();
@@ -15,10 +17,15 @@ export async function GET() {
     .filter((r) => r.slug !== 'france')
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const activities = Array.from(index.activities.entries())
-    .map(([slug, activity]) => {
-      const clubCount = Array.from(activity.cities.values()).reduce((sum, c) => sum + c.clubs.length, 0);
-      return { slug, name: activity.name, cities: activity.cities.size, clubs: clubCount };
+  // Toutes les activités de la liste canonique, avec leurs compteurs réels
+  // (0 si aucun club ne la propose encore) — pour que le footer et la page
+  // /activites listent toujours l'ensemble des activités.
+  const activities = ACTIVITIES
+    .map((a) => {
+      const slug = slugify(a.key);
+      const entry = index.activities.get(slug);
+      const clubCount = entry ? Array.from(entry.cities.values()).reduce((sum, c) => sum + c.clubs.length, 0) : 0;
+      return { slug, name: a.key, cities: entry?.cities.size || 0, clubs: clubCount };
     })
     .sort((a, b) => b.clubs - a.clubs);
 
