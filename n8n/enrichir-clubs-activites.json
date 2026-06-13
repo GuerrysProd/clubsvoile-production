@@ -1,0 +1,155 @@
+{
+  "name": "ClubsVoile — Enrichir activités + description SEO",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "Déclenchement manuel",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 320]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://YOUR_PROJECT.supabase.co/rest/v1/clubs?select=id,name,city,website,activities&website=not.is.null&limit=2000",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "YOUR_SUPABASE_KEY" },
+            { "name": "Authorization", "value": "Bearer YOUR_SUPABASE_KEY" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-clubs",
+      "name": "Récupérer les clubs (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mode itération : chaque exécution reçoit un seul club.\nconst club = $input.item.json;\n\n// Vérifier les deux critères.\nconst hasSite = !!club.website && String(club.website).startsWith('http');\nconst sansActivites = !club.activities || (Array.isArray(club.activities) && club.activities.length === 0);\n\n// Ne passer au nœud suivant que si les deux critères sont vrais.\nif (hasSite && sansActivites) {\n  return [{ json: { id: club.id, name: club.name, city: club.city, website: club.website } }];\n} else {\n  return []; // Skip ce club\n}"
+      },
+      "id": "filtrer",
+      "name": "Filtrer sans activités",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 320]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.website }}",
+        "options": {
+          "response": { "response": { "responseFormat": "text" } },
+          "timeout": 15000,
+          "redirect": { "redirect": {} }
+        }
+      },
+      "id": "fetch-site",
+      "name": "Récupérer le site du club",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, 320],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mode itération : chaque exécution reçoit un seul club.\nconst club = $input.item.json;\n\n// Nettoie le HTML → texte brut tronqué.\nconst html = String($json.data ?? $json.body ?? '');\nconst text = html\n  .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n  .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/&[a-z]+;/gi, ' ')\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .slice(0, 6000);\n\n// Site injoignable ou vide → on saute ce club.\nif (!text || text.length < 40) return [];\n\nconst ACTIVITIES = [\n  'Moussaillon', 'Optimist', 'Dériveur', 'Catamaran',\n  'Planche à voile / WindSurf', 'WingFoil', 'WindFoil', 'KiteSurf',\n  'KiteFoil', 'E-Foil', 'Surf', 'Kayak', 'Paddle',\n  'Habitable/Croisière', 'Char à voile',\n];\n\nconst system =\n  \"Tu es un assistant qui analyse le site web d'un club nautique français. \" +\n  'À partir du texte du site, tu dois : ' +\n  '1) Identifier UNIQUEMENT les activités proposées par le club, parmi cette liste exacte (n\\'invente rien, n\\'ajoute aucune autre valeur) : ' +\n  ACTIVITIES.join(', ') + '. ' +\n  '2) Rédiger une description en français, optimisée SEO autour du mot-clé \"voile\", de 2 à 4 phrases. ' +\n  'Elle doit présenter le club et mentionner naturellement les activités associées à la ville sous la forme \"Activité à Ville\" (ex : \"Catamaran à ' + club.city + '\"). ' +\n  \"Ne recopie jamais l'adresse postale. Reste factuel : ne mentionne que des activités réellement présentes sur le site. \" +\n  'Réponds STRICTEMENT au format JSON demandé.';\n\nconst body = {\n  model: 'claude-haiku-4-5',\n  max_tokens: 1024,\n  system,\n  messages: [\n    {\n      role: 'user',\n      content:\n        'Nom du club : ' + club.name + '\\n' +\n        'Ville : ' + club.city + '\\n\\n' +\n        'Contenu du site web :\\n' + text,\n    },\n  ],\n  output_config: {\n    format: {\n      type: 'json_schema',\n      schema: {\n        type: 'object',\n        additionalProperties: false,\n        properties: {\n          activities: { type: 'array', items: { type: 'string', enum: ACTIVITIES } },\n          description: { type: 'string' },\n        },\n        required: ['activities', 'description'],\n      },\n    },\n  },\n};\n\nreturn [{ json: { id: club.id, name: club.name, city: club.city, body } }];"
+      },
+      "id": "preparer",
+      "name": "Préparer la requête Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "YOUR_ANTHROPIC_API_KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "claude",
+      "name": "Claude Haiku — extraction",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1300, 320],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse la réponse structurée de Claude et valide les activités.\nconst ACTIVITIES = [\n  'Moussaillon', 'Optimist', 'Dériveur', 'Catamaran',\n  'Planche à voile / WindSurf', 'WingFoil', 'WindFoil', 'KiteSurf',\n  'KiteFoil', 'E-Foil', 'Surf', 'Kayak', 'Paddle',\n  'Habitable/Croisière', 'Char à voile',\n];\n\nlet parsed;\ntry {\n  const txt = $json.content?.[0]?.text ?? '';\n  parsed = JSON.parse(txt);\n} catch (e) {\n  return []; // réponse inattendue → on saute\n}\n\nconst activities = (parsed.activities || []).filter((a) => ACTIVITIES.includes(a));\nconst description = String(parsed.description || '').trim();\nconst club = $input.item.json;\nconst id = club.id;\n\nif (!id || (activities.length === 0 && !description)) return [];\n\nreturn [{ json: { id, activities, description } }];"
+      },
+      "id": "construire-update",
+      "name": "Construire la mise à jour",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1520, 320]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://YOUR_PROJECT.supabase.co/rest/v1/clubs?id=eq.{{ $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "YOUR_SUPABASE_SERVICE_ROLE_KEY" },
+            { "name": "Authorization", "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"activities\": $json.activities, \"description\": $json.description } }}",
+        "options": {}
+      },
+      "id": "update-supabase",
+      "name": "Mettre à jour le club (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1740, 320],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Déclenchement manuel": {
+      "main": [[{ "node": "Récupérer les clubs (Supabase)", "type": "main", "index": 0 }]]
+    },
+    "Récupérer les clubs (Supabase)": {
+      "main": [[{ "node": "Filtrer sans activités", "type": "main", "index": 0 }]]
+    },
+    "Filtrer sans activités": {
+      "main": [[{ "node": "Récupérer le site du club", "type": "main", "index": 0 }]]
+    },
+    "Récupérer le site du club": {
+      "main": [[{ "node": "Préparer la requête Claude", "type": "main", "index": 0 }]]
+    },
+    "Préparer la requête Claude": {
+      "main": [[{ "node": "Claude Haiku — extraction", "type": "main", "index": 0 }]]
+    },
+    "Claude Haiku — extraction": {
+      "main": [[{ "node": "Construire la mise à jour", "type": "main", "index": 0 }]]
+    },
+    "Construire la mise à jour": {
+      "main": [[{ "node": "Mettre à jour le club (Supabase)", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}

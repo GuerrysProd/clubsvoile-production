@@ -2,6 +2,10 @@ import { supabase } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 import { buildClubSlugs, buildClubPath } from '@/lib/geo';
 
+// Toujours relire Supabase (pas de cache figé) — sinon les mises à jour
+// d'activités/description n'apparaissent jamais sur le site.
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const PAGE_SIZE = 1000;
