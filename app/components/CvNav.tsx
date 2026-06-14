@@ -1,16 +1,33 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function CvNav() {
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
+
   return (
     <nav className="nav">
       <div className="wrap nav-in">
-        <Link href="/" className="logo"><span className="dot" />ClubsVoile.fr</Link>
-        <div className="nav-links">
-          <Link href="/#supports">Supports</Link>
-          <Link href="/activites">Activités</Link>
-          <Link href="/#carte">La carte</Link>
-          <Link href="/search">Explorer</Link>
-          <Link href="/admin/login" className="nav-cta">Inscrire mon club</Link>
+        <Link href="/" className="logo" onClick={close}><span className="dot" />ClubsVoile.fr</Link>
+
+        <button
+          type="button"
+          className={'nav-burger' + (open ? ' is-open' : '')}
+          aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+        >
+          <span /><span /><span />
+        </button>
+
+        <div className={'nav-links' + (open ? ' is-open' : '')}>
+          <Link href="/#supports" onClick={close}>Supports</Link>
+          <Link href="/activites" onClick={close}>Activités</Link>
+          <Link href="/#carte" onClick={close}>La carte</Link>
+          <Link href="/search" onClick={close}>Explorer</Link>
+          <Link href="/admin/login" className="nav-cta" onClick={close}>Inscrire mon club</Link>
         </div>
       </div>
     </nav>
