@@ -200,6 +200,17 @@
 
 .cv .no-results,.cv .search-loading{padding:60px 0;text-align:center;color:rgba(11,30,51,.55);font-size:15px}
 
+/* ----- Bloc éditorial SEO (contenu généré) ----- */
+.cv .seo-block{padding:48px 0 0}
+.cv .seo-content{max-width:760px;font-size:16px;line-height:1.75;color:rgba(11,30,51,.78)}
+.cv .seo-content h2{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.15;letter-spacing:-.02em;color:var(--ink);margin:28px 0 12px}
+.cv .seo-content h3{font-family:var(--display);font-weight:700;font-size:19px;color:var(--ink);margin:22px 0 8px}
+.cv .seo-content p{margin:0 0 14px}
+.cv .seo-content ul,.cv .seo-content ol{margin:0 0 14px;padding-left:22px}
+.cv .seo-content li{margin-bottom:6px}
+.cv .seo-content a{color:var(--coral-deep);font-weight:500;text-decoration:underline;text-underline-offset:2px}
+.cv .seo-content a:hover{color:var(--coral)}
+
 /* ----- Page club ----- */
 .cv .club-hero{position:relative;background:linear-gradient(135deg,var(--ink-2),var(--ink));overflow:hidden}
 .cv .club-cover{position:relative;height:340px;overflow:hidden}

@@ -6,6 +6,7 @@ import CvNav from '../../components/CvNav';
 import CvFooter from '../../components/CvFooter';
 import JsonLd from '../../components/JsonLd';
 import { getGeoIndex } from '@/lib/clubsData';
+import { getSeoContent } from '@/lib/seoContent';
 import { pageMeta, breadcrumbLd, itemListLd } from '@/lib/seo';
 
 type Params = { a: string; b: string };
@@ -32,18 +33,25 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const data = await getPageData(params);
   if (!data) return {};
 
+  const path = `/${params.a}/${params.b}`;
+  const seo = await getSeoContent(path);
+
   if (data.type === 'department') {
     return pageMeta({
-      title: `Clubs de voile en ${data.department.name} | ClubsVoile.fr`,
-      description: `Annuaire des clubs de voile en ${data.department.name} (${data.region.name}). Trouvez votre club par ville.`,
-      path: `/${params.a}/${params.b}`,
+      title: seo?.meta_title || `Clubs de voile en ${data.department.name} | ClubsVoile.fr`,
+      description:
+        seo?.meta_description ||
+        `Annuaire des clubs de voile en ${data.department.name} (${data.region.name}). Trouvez votre club par ville.`,
+      path,
     });
   }
 
   return pageMeta({
-    title: `${data.activity.name} à ${data.city.name} | ClubsVoile.fr`,
-    description: `Pratiquez le ${data.activity.name} à ${data.city.name}. ${data.city.clubs.length} club${data.city.clubs.length > 1 ? 's' : ''} proposant cette activité.`,
-    path: `/${params.a}/${params.b}`,
+    title: seo?.meta_title || `${data.activity.name} à ${data.city.name} | ClubsVoile.fr`,
+    description:
+      seo?.meta_description ||
+      `Pratiquez le ${data.activity.name} à ${data.city.name}. ${data.city.clubs.length} club${data.city.clubs.length > 1 ? 's' : ''} proposant cette activité.`,
+    path,
   });
 }
 
@@ -102,15 +110,28 @@ export default async function Page({ params }: { params: Params }) {
 
   const { activity, city } = data;
   const cityPath = city.clubs[0]?.path.split('/').slice(0, -1).join('/');
+  const path = `/${params.a}/${params.b}`;
+  const seo = await getSeoContent(path);
 
-  const actCityLd = [
+  const actCityLd: object[] = [
     breadcrumbLd([
       { name: 'Accueil', path: '/' },
       { name: `${activity.name} en France`, path: `/${params.a}` },
-      { name: `${activity.name} à ${city.name}`, path: `/${params.a}/${params.b}` },
+      { name: `${activity.name} à ${city.name}`, path },
     ]),
     itemListLd(city.clubs.map((c) => ({ name: c.name, path: c.path }))),
   ];
+  if (seo?.faq?.length) {
+    actCityLd.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: seo.faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    });
+  }
 
   return (
     <div className="cv">
@@ -135,6 +156,14 @@ export default async function Page({ params }: { params: Params }) {
           <p className="lede">{city.clubs.length.toLocaleString('fr-FR')} club{city.clubs.length > 1 ? 's' : ''} proposant le {activity.name} à {city.name}.</p>
         </div>
       </header>
+
+      {seo?.intro_html && (
+        <section className="block seo-block">
+          <div className="wrap">
+            <div className="seo-content" dangerouslySetInnerHTML={{ __html: seo.intro_html }} />
+          </div>
+        </section>
+      )}
 
       <section className="block">
         <div className="wrap">

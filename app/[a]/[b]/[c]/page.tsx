@@ -6,6 +6,7 @@ import CvNav from '../../../components/CvNav';
 import CvFooter from '../../../components/CvFooter';
 import JsonLd from '../../../components/JsonLd';
 import { getGeoIndex } from '@/lib/clubsData';
+import { getSeoContent } from '@/lib/seoContent';
 import { ACTIVITIES } from '@/lib/activities';
 import { slugify } from '@/lib/slug';
 import { pageMeta, breadcrumbLd, itemListLd } from '@/lib/seo';
@@ -32,10 +33,15 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const data = await getCityData(params);
   if (!data) return {};
 
+  const path = `/${params.a}/${params.b}/${params.c}`;
+  const seo = await getSeoContent(path);
+
   return pageMeta({
-    title: `Clubs de voile à ${data.city.name} | ClubsVoile.fr`,
-    description: `Trouvez votre club de voile à ${data.city.name} (${data.department.name}, ${data.region.name}). ${data.city.clubs.length} club${data.city.clubs.length > 1 ? 's' : ''} référencé${data.city.clubs.length > 1 ? 's' : ''}.`,
-    path: `/${params.a}/${params.b}/${params.c}`,
+    title: seo?.meta_title || `Clubs de voile à ${data.city.name} | ClubsVoile.fr`,
+    description:
+      seo?.meta_description ||
+      `Trouvez votre club de voile à ${data.city.name} (${data.department.name}, ${data.region.name}). ${data.city.clubs.length} club${data.city.clubs.length > 1 ? 's' : ''} référencé${data.city.clubs.length > 1 ? 's' : ''}.`,
+    path,
   });
 }
 
@@ -44,16 +50,29 @@ export default async function CityPage({ params }: { params: Params }) {
   if (!data) notFound();
 
   const { region, department, city, cityActivities } = data;
+  const path = `/${params.a}/${params.b}/${params.c}`;
+  const seo = await getSeoContent(path);
 
-  const cityLd = [
+  const cityLd: object[] = [
     breadcrumbLd([
       { name: 'Accueil', path: '/' },
       { name: region.name, path: `/${params.a}` },
       { name: department.name, path: `/${params.a}/${params.b}` },
-      { name: city.name, path: `/${params.a}/${params.b}/${params.c}` },
+      { name: city.name, path },
     ]),
     itemListLd(city.clubs.map((c) => ({ name: c.name, path: c.path }))),
   ];
+  if (seo?.faq?.length) {
+    cityLd.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: seo.faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    });
+  }
 
   return (
     <div className="cv">
@@ -74,6 +93,14 @@ export default async function CityPage({ params }: { params: Params }) {
           <p className="lede">{city.clubs.length.toLocaleString('fr-FR')} club{city.clubs.length > 1 ? 's' : ''} de voile référencé{city.clubs.length > 1 ? 's' : ''} à {city.name}.</p>
         </div>
       </header>
+
+      {seo?.intro_html && (
+        <section className="block seo-block">
+          <div className="wrap">
+            <div className="seo-content" dangerouslySetInnerHTML={{ __html: seo.intro_html }} />
+          </div>
+        </section>
+      )}
 
       <section className="block">
         <div className="wrap">

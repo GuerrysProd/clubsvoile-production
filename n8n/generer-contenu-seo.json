@@ -1,0 +1,234 @@
+{
+  "name": "ClubsVoile — Generer contenu SEO (meta + editorial)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "Declenchement manuel",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://clubsvoile.fr/api/seo/pages?types=activity_city,city&onlyMissing=true&limit=200",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "get-pages",
+      "name": "Recuperer les pages a generer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Éclate la réponse de l'endpoint (un item contenant pages[]) en N items.\nconst res = $input.first().json;\nconst pages = res.pages || [];\nreturn pages.map((p) => ({ json: p }));"
+      },
+      "id": "eclater",
+      "name": "Eclater les pages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Mode \"Run Once for All Items\" : construit la requête Claude pour chaque page.\nconst pages = $input.all();\nconst out = [];\nfor (const item of pages) {\n  const p = item.json;\n  const il = p.internalLinks || {};\n  const internal = [];\n  if (il.cityPage) internal.push(il.cityPage);\n  if (il.departmentPage) internal.push(il.departmentPage);\n  if (il.regionPage) internal.push(il.regionPage);\n  if (il.activityNational) internal.push(il.activityNational);\n  for (const a of (il.relatedActivities || [])) internal.push(a);\n  for (const a of (il.activitiesHere || [])) internal.push(a);\n  for (const c of (il.nearbyCities || [])) internal.push(c);\n  for (const c of (p.clubs || [])) internal.push(c);\n  const internalList = internal.map((x) => '- ' + x.name + ' -> ' + x.path).join('\\n');\n  const externalList = (p.externalLinks || []).map((x) => '- ' + x.label + ' -> ' + x.url).join('\\n');\n\n  const subject = p.page_type === 'activity_city'\n    ? 'la pratique du ' + p.activity + ' a ' + p.city\n    : 'les clubs de voile a ' + p.city + ' (' + p.department + ', ' + p.region + ')';\n\n  const system =\n    \"Tu es un redacteur SEO expert pour ClubsVoile.fr, annuaire des clubs de voile en France. \" +\n    \"Tu ecris un contenu editorial unique, factuel et naturel en francais, optimise autour du mot-cle principal (voile + activite + ville). \" +\n    \"Regles STRICTES : \" +\n    \"1) intro_html = 2 a 3 paragraphes <p> + un sous-titre <h2>, 120-220 mots, sans recopier de listes brutes. \" +\n    \"2) Insere 3 a 6 LIENS INTERNES en utilisant UNIQUEMENT les chemins fournis, sous la forme <a href=\\\"/chemin\\\">ancre</a>. N'invente JAMAIS d'URL interne. \" +\n    \"3) Insere 1 a 2 LIENS EXTERNES d'autorite en utilisant uniquement les URLs externes fournies. \" +\n    \"4) meta_title <= 60 caracteres ; meta_description <= 155 caracteres ; accrocheurs, avec le mot-cle. \" +\n    \"5) faq = 2 a 3 questions/reponses utiles et factuelles. \" +\n    \"Ne mentionne que des faits deduits du contexte (noms de clubs, ville, activite). N'invente aucun fait.\";\n\n  const user =\n    'Sujet de la page : ' + subject + '\\n' +\n    'Type : ' + p.page_type + '\\n' +\n    'Ville : ' + (p.city || '') + '\\n' +\n    (p.activity ? ('Activite : ' + p.activity + '\\n') : '') +\n    'Nombre de clubs : ' + (p.clubsCount != null ? p.clubsCount : (p.clubs || []).length) + '\\n\\n' +\n    'LIENS INTERNES disponibles (utilise les chemins exacts) :\\n' + (internalList || '(aucun)') + '\\n\\n' +\n    \"LIENS EXTERNES d'autorite disponibles :\\n\" + (externalList || '(aucun)') + '\\n';\n\n  const body = {\n    model: 'claude-haiku-4-5',\n    max_tokens: 1200,\n    system,\n    messages: [{ role: 'user', content: user }],\n    output_config: { format: { type: 'json_schema', schema: {\n      type: 'object', additionalProperties: false,\n      properties: {\n        meta_title: { type: 'string' },\n        meta_description: { type: 'string' },\n        intro_html: { type: 'string' },\n        faq: { type: 'array', items: { type: 'object', additionalProperties: false,\n          properties: { q: { type: 'string' }, a: { type: 'string' } }, required: ['q', 'a'] } },\n      },\n      required: ['meta_title', 'meta_description', 'intro_html', 'faq'],\n    } } },\n  };\n  out.push({ json: { path: p.path, page_type: p.page_type, body } });\n}\nreturn out;"
+      },
+      "id": "preparer",
+      "name": "Preparer la requete Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "YOUR_ANTHROPIC_API_KEY"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {
+          "timeout": 60000,
+          "batching": {
+            "batch": {
+              "batchSize": 5,
+              "batchInterval": 1500
+            }
+          }
+        }
+      },
+      "id": "claude",
+      "name": "Claude Haiku — redaction",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Aligne les reponses Claude avec les pages preparees (par index) et prepare l'upsert.\nconst responses = $input.all();\nconst prepared = $('Preparer la requete Claude').all();\nconst out = [];\nfor (let i = 0; i < responses.length; i++) {\n  const meta = prepared[i] ? prepared[i].json : null;\n  if (!meta || !meta.path) continue;\n  let parsed;\n  try { parsed = JSON.parse(responses[i].json.content?.[0]?.text ?? ''); } catch (e) { continue; }\n  if (!parsed || !parsed.meta_title) continue;\n  out.push({ json: {\n    path: meta.path,\n    page_type: meta.page_type,\n    meta_title: parsed.meta_title,\n    meta_description: parsed.meta_description,\n    intro_html: parsed.intro_html,\n    faq: parsed.faq || [],\n    status: 'published',\n  } });\n}\nreturn out;"
+      },
+      "id": "construire",
+      "name": "Construire l'upsert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_PROJECT.supabase.co/rest/v1/seo_content",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"path\": $json.path, \"page_type\": $json.page_type, \"meta_title\": $json.meta_title, \"meta_description\": $json.meta_description, \"intro_html\": $json.intro_html, \"faq\": $json.faq, \"status\": $json.status } }}",
+        "options": {}
+      },
+      "id": "upsert",
+      "name": "Upsert seo_content (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1520,
+        300
+      ],
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Declenchement manuel": {
+      "main": [
+        [
+          {
+            "node": "Recuperer les pages a generer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recuperer les pages a generer": {
+      "main": [
+        [
+          {
+            "node": "Eclater les pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eclater les pages": {
+      "main": [
+        [
+          {
+            "node": "Preparer la requete Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparer la requete Claude": {
+      "main": [
+        [
+          {
+            "node": "Claude Haiku — redaction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Haiku — redaction": {
+      "main": [
+        [
+          {
+            "node": "Construire l'upsert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construire l'upsert": {
+      "main": [
+        [
+          {
+            "node": "Upsert seo_content (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}
