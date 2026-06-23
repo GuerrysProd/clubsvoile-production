@@ -5,6 +5,10 @@ import { ACTIVITIES } from '@/lib/activities';
 import { slugify } from '@/lib/slug';
 
 export const dynamic = 'force-dynamic';
+// Jamais de cache : la liste des pages "manquantes" doit toujours refléter
+// l'état réel de seo_content, sinon le workflow régénère des pages déjà faites.
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 // Liens externes d'autorité proposés à Claude (il choisit les pertinents,
 // il n'invente pas d'URL). Évite les liens cassés/hallucinés.
