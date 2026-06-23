@@ -29,10 +29,19 @@ export async function GET(request: Request) {
   const index = await getGeoIndex();
 
   // Pages déjà générées → à exclure si onlyMissing.
-  let done = new Set<string>();
+  // Pagination obligatoire : Supabase plafonne à 1000 lignes par requête.
+  const done = new Set<string>();
   if (onlyMissing) {
-    const { data } = await supabase.from('seo_content').select('path');
-    done = new Set((data || []).map((r) => r.path));
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from('seo_content')
+        .select('path')
+        .range(from, from + PAGE - 1);
+      if (error || !data || data.length === 0) break;
+      for (const r of data) done.add(r.path);
+      if (data.length < PAGE) break;
+    }
   }
 
   // Région/département pour une ville donnée (déduits du chemin d'un club).

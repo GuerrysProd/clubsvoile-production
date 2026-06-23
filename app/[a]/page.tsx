@@ -164,6 +164,24 @@ export default async function Page({ params }: { params: Params }) {
         </section>
       )}
 
+      {cities.length > 0 && (
+        <section className="block">
+          <div className="wrap">
+            <div className="sec-eyebrow">Par ville</div>
+            <h2 className="sec-title">Où pratiquer le {activity.name} ?</h2>
+            <p className="sec-intro">Choisissez une ville pour voir les clubs qui proposent le {activity.name}.</p>
+            <div className="geo-grid">
+              {cities.map(([citySlug, c]) => (
+                <Link key={citySlug} href={`/${params.a}/${citySlug}`} className="geo-card">
+                  <span className="name">{activity.name} à {c.name}</span>
+                  <span className="count">{c.clubs.length} club{c.clubs.length > 1 ? 's' : ''}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="block map-block">
         <div className="wrap">
           <div className="sec-eyebrow">La carte vivante</div>

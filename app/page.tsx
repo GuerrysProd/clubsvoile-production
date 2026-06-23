@@ -211,6 +211,31 @@ export default function HomePage() {
     if (r && mapRef.current && CENTERS[r]) mapRef.current.flyTo(CENTERS[r], 8, { duration: 1.1 });
   };
   const voirLesClubs = () => {
+    const clean = (s?: string) => (s || '').replace(/^\d{4,5}\s+/, '').trim().toLowerCase();
+    const cityClubs = city ? clubs.filter((c) => clean(c.city) === city.toLowerCase()) : [];
+    let target = '';
+
+    if (sup && city) {
+      // Activité × ville : seulement si un club de cette ville propose l'activité.
+      const m = cityClubs.find((c) => (c.activities || []).includes(sup) && c.path);
+      if (m?.path) target = `/${slugify(sup)}/${m.path.split('/')[3]}`;
+    } else if (city) {
+      // Page ville (dérivée du chemin d'un club de la ville).
+      const m = cityClubs.find((c) => c.path);
+      if (m?.path) target = m.path.split('/').slice(0, 4).join('/');
+    } else if (sup && !region && !dep) {
+      target = `/${slugify(sup)}`; // page activité nationale
+    } else if (region && !dep) {
+      const rslug = slugify(region);
+      if (clubs.some((c) => c.path?.split('/')[1] === rslug)) target = `/${rslug}`;
+    }
+
+    if (target) {
+      window.location.href = target;
+      return;
+    }
+
+    // Fallback : moteur de recherche filtré.
     const p = new URLSearchParams();
     if (sup) p.set('support', sup);
     if (region) p.set('region', region);

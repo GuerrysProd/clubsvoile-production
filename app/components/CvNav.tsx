@@ -23,10 +23,10 @@ export default function CvNav() {
         </button>
 
         <div className={'nav-links' + (open ? ' is-open' : '')}>
-          <Link href="/#supports" onClick={close}>Supports</Link>
-          <Link href="/activites" onClick={close}>Activités</Link>
+          <Link href="/activites" onClick={close}>Par activité</Link>
+          <Link href="/#regions" onClick={close}>Par région</Link>
           <Link href="/#carte" onClick={close}>La carte</Link>
-          <Link href="/search" onClick={close}>Explorer</Link>
+          <Link href="/search" onClick={close}>Rechercher</Link>
           <Link href="/admin/login" className="nav-cta" onClick={close}>Inscrire mon club</Link>
         </div>
       </div>
