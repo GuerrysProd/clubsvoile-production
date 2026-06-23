@@ -7,11 +7,13 @@ import ActivityIcons from '../components/ActivityIcons';
 import { ACTIVITIES } from '@/lib/activities';
 import { getGeoIndex } from '@/lib/clubsData';
 import { slugify } from '@/lib/slug';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Toutes les activités nautiques | ClubsVoile.fr',
   description: 'Optimist, catamaran, wingfoil, kitesurf, paddle, char à voile... Découvrez toutes les activités pratiquées dans les clubs de voile français, avec le nombre de clubs et la tranche d\'âge recommandée.',
-};
+  path: '/activites',
+});
 
 export default async function ActivitesPage() {
   const index = await getGeoIndex();

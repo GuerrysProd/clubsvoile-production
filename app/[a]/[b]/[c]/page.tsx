@@ -4,9 +4,11 @@ import type { Metadata } from 'next';
 import '../../../home.css';
 import CvNav from '../../../components/CvNav';
 import CvFooter from '../../../components/CvFooter';
+import JsonLd from '../../../components/JsonLd';
 import { getGeoIndex } from '@/lib/clubsData';
 import { ACTIVITIES } from '@/lib/activities';
 import { slugify } from '@/lib/slug';
+import { pageMeta, breadcrumbLd, itemListLd } from '@/lib/seo';
 
 type Params = { a: string; b: string; c: string };
 
@@ -30,10 +32,11 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const data = await getCityData(params);
   if (!data) return {};
 
-  return {
+  return pageMeta({
     title: `Clubs de voile à ${data.city.name} | ClubsVoile.fr`,
     description: `Trouvez votre club de voile à ${data.city.name} (${data.department.name}, ${data.region.name}). ${data.city.clubs.length} club${data.city.clubs.length > 1 ? 's' : ''} référencé${data.city.clubs.length > 1 ? 's' : ''}.`,
-  };
+    path: `/${params.a}/${params.b}/${params.c}`,
+  });
 }
 
 export default async function CityPage({ params }: { params: Params }) {
@@ -42,8 +45,19 @@ export default async function CityPage({ params }: { params: Params }) {
 
   const { region, department, city, cityActivities } = data;
 
+  const cityLd = [
+    breadcrumbLd([
+      { name: 'Accueil', path: '/' },
+      { name: region.name, path: `/${params.a}` },
+      { name: department.name, path: `/${params.a}/${params.b}` },
+      { name: city.name, path: `/${params.a}/${params.b}/${params.c}` },
+    ]),
+    itemListLd(city.clubs.map((c) => ({ name: c.name, path: c.path }))),
+  ];
+
   return (
     <div className="cv">
+      <JsonLd data={cityLd} />
       <CvNav />
 
       <header className="search-hero">

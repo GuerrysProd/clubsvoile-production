@@ -4,7 +4,9 @@ import type { Metadata } from 'next';
 import '../../home.css';
 import CvNav from '../../components/CvNav';
 import CvFooter from '../../components/CvFooter';
+import JsonLd from '../../components/JsonLd';
 import { getGeoIndex } from '@/lib/clubsData';
+import { pageMeta, breadcrumbLd, itemListLd } from '@/lib/seo';
 
 type Params = { a: string; b: string };
 
@@ -31,16 +33,18 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!data) return {};
 
   if (data.type === 'department') {
-    return {
+    return pageMeta({
       title: `Clubs de voile en ${data.department.name} | ClubsVoile.fr`,
       description: `Annuaire des clubs de voile en ${data.department.name} (${data.region.name}). Trouvez votre club par ville.`,
-    };
+      path: `/${params.a}/${params.b}`,
+    });
   }
 
-  return {
+  return pageMeta({
     title: `${data.activity.name} à ${data.city.name} | ClubsVoile.fr`,
     description: `Pratiquez le ${data.activity.name} à ${data.city.name}. ${data.city.clubs.length} club${data.city.clubs.length > 1 ? 's' : ''} proposant cette activité.`,
-  };
+    path: `/${params.a}/${params.b}`,
+  });
 }
 
 export default async function Page({ params }: { params: Params }) {
@@ -51,8 +55,18 @@ export default async function Page({ params }: { params: Params }) {
     const { region, department } = data;
     const cities = Array.from(department.cities.entries()).sort((a, b) => a[1].name.localeCompare(b[1].name));
 
+    const deptLd = [
+      breadcrumbLd([
+        { name: 'Accueil', path: '/' },
+        { name: region.name, path: `/${params.a}` },
+        { name: department.name, path: `/${params.a}/${params.b}` },
+      ]),
+      itemListLd(cities.map(([citySlug, c]) => ({ name: c.name, path: `/${params.a}/${params.b}/${citySlug}` }))),
+    ];
+
     return (
       <div className="cv">
+        <JsonLd data={deptLd} />
         <CvNav />
 
         <header className="search-hero">
@@ -89,8 +103,18 @@ export default async function Page({ params }: { params: Params }) {
   const { activity, city } = data;
   const cityPath = city.clubs[0]?.path.split('/').slice(0, -1).join('/');
 
+  const actCityLd = [
+    breadcrumbLd([
+      { name: 'Accueil', path: '/' },
+      { name: `${activity.name} en France`, path: `/${params.a}` },
+      { name: `${activity.name} à ${city.name}`, path: `/${params.a}/${params.b}` },
+    ]),
+    itemListLd(city.clubs.map((c) => ({ name: c.name, path: c.path }))),
+  ];
+
   return (
     <div className="cv">
+      <JsonLd data={actCityLd} />
       <CvNav />
 
       <header className="search-hero">

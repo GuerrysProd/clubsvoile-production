@@ -5,10 +5,12 @@ import '../../../../home.css';
 import CvNav from '../../../../components/CvNav';
 import CvFooter from '../../../../components/CvFooter';
 import ClubDetailView from '../../../../components/ClubDetailView';
+import JsonLd from '../../../../components/JsonLd';
 import { supabase } from '@/lib/supabase';
 import { getGeoIndex } from '@/lib/clubsData';
 import { getClubGeo } from '@/lib/geo';
 import { slugify } from '@/lib/slug';
+import { pageMeta, breadcrumbLd, SITE_URL } from '@/lib/seo';
 
 type Params = { a: string; b: string; c: string; d: string };
 
@@ -30,12 +32,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const location = [club.city, club.region].filter(Boolean).join(', ');
   const activities = (club.activities || []).slice(0, 3).join(', ');
 
-  return {
+  return pageMeta({
     title: `${club.name} — Club de voile à ${club.city || location} | ClubsVoile.fr`,
     description:
       club.description ||
       `${club.name}, club de voile à ${location}.${activities ? ` Activités : ${activities}.` : ''}`,
-  };
+    path: `/${params.a}/${params.b}/${params.c}/${params.d}`,
+  });
 }
 
 export default async function ClubDetailPage({ params }: { params: Params }) {
@@ -65,8 +68,52 @@ export default async function ClubDetailPage({ params }: { params: Params }) {
     </nav>
   );
 
+  const path = `/${params.a}/${params.b}/${params.c}/${params.d}`;
+  const businessLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SportsActivityLocation',
+    name: club.name,
+    url: `${SITE_URL}${path}`,
+    ...(club.description ? { description: club.description } : {}),
+    ...(club.logo_url || (club.photos && club.photos[0])
+      ? { image: club.logo_url || club.photos[0] }
+      : {}),
+    ...(club.phone ? { telephone: club.phone } : {}),
+    ...(club.email ? { email: club.email } : {}),
+    ...(club.website ? { sameAs: [club.website] } : {}),
+    address: {
+      '@type': 'PostalAddress',
+      ...(club.address ? { streetAddress: club.address } : {}),
+      addressLocality: geo.cityName,
+      ...(club.zip_code ? { postalCode: club.zip_code } : {}),
+      addressRegion: geo.regionName,
+      addressCountry: 'FR',
+    },
+    ...(typeof club.latitude === 'number' && typeof club.longitude === 'number'
+      ? { geo: { '@type': 'GeoCoordinates', latitude: club.latitude, longitude: club.longitude } }
+      : {}),
+    ...(club.rating && club.review_count
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: club.rating,
+            reviewCount: club.review_count,
+          },
+        }
+      : {}),
+  };
+
+  const crumbLd = breadcrumbLd([
+    { name: 'Accueil', path: '/' },
+    { name: geo.regionName, path: `/${params.a}` },
+    { name: geo.departmentName, path: `/${params.a}/${params.b}` },
+    { name: geo.cityName, path: `/${params.a}/${params.b}/${params.c}` },
+    { name: club.name, path },
+  ]);
+
   return (
     <div className="cv">
+      <JsonLd data={[businessLd, crumbLd]} />
       <CvNav />
       <ClubDetailView club={club} breadcrumb={breadcrumb} activityLinks={activityLinks} />
       <CvFooter />
