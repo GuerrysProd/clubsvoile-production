@@ -28,7 +28,7 @@ export default function CvNav() {
           <Link href="/#regions" onClick={close}>Par région</Link>
           <Link href="/#carte" onClick={close}>La carte</Link>
           <Link href="/search" onClick={close}>Rechercher</Link>
-          <Link href="/admin/login" className="nav-cta" onClick={close}>Inscrire mon club</Link>
+          <Link href="/contact" className="nav-cta" onClick={close}>Référencer mon club</Link>
         </div>
       </div>
     </nav>

@@ -412,10 +412,10 @@ export default function HomePage() {
           <div className="strip">
             <svg className="cstripwave" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="#fff" strokeWidth="2"><path d="M-50 80 C 250 30 450 130 750 70 S 1150 20 1280 90" /><path d="M-50 170 C 250 120 450 220 750 160 S 1150 110 1280 180" /><path d="M-50 250 C 250 200 450 300 750 240 S 1150 190 1280 260" /></g></svg>
             <div>
-              <h2>Vous gérez un club&nbsp;? Prenez le large avec nous.</h2>
-              <p>Mettez à jour votre fiche, vos supports et vos photos. Des milliers de passionnés cherchent leur prochain spot.</p>
+              <h2>Vous gérez un club&nbsp;? Gagnez en visibilité, gratuitement.</h2>
+              <p>Des milliers de passionnés cherchent leur prochain club. Référencez le vôtre sur l&apos;annuaire n°1 de la voile — c&apos;est gratuit. Parlons-en.</p>
             </div>
-            <a href="/admin/login" className="strip-btn">Inscrire mon club →</a>
+            <a href="/contact" className="strip-btn">Contactez-nous →</a>
           </div>
         </div>
       </section>

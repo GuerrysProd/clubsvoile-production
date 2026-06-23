@@ -190,7 +190,7 @@ export default async function Page({ params }: { params: Params }) {
           {cities.length > 0 ? (
             <ClubsMap activity={activity.name} />
           ) : (
-            <p className="lede">Aucun club ne propose encore cette activité pour le moment. <Link href="/admin/login">Inscrivez votre club</Link> pour être le premier référencé !</p>
+            <p className="lede">Aucun club ne propose encore cette activité pour le moment. <Link href="/contact">Contactez-nous</Link> pour référencer le vôtre gratuitement et être le premier !</p>
           )}
         </div>
       </section>
