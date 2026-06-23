@@ -5,6 +5,7 @@ import '../home.css';
 import CvNav from '../components/CvNav';
 import CvFooter from '../components/CvFooter';
 import { getGeoIndex } from '@/lib/clubsData';
+import { getSeoContent } from '@/lib/seoContent';
 import { ACTIVITIES } from '@/lib/activities';
 import { slugify } from '@/lib/slug';
 import ClubsMap from '../components/ClubsMap';
@@ -34,17 +35,23 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const data = await getPageData(params);
   if (!data) return {};
 
+  const seo = await getSeoContent(`/${params.a}`);
+
   if (data.type === 'region') {
     return pageMeta({
-      title: `Clubs de voile en ${data.region.name} | ClubsVoile.fr`,
-      description: `Annuaire des clubs de voile en ${data.region.name}. Trouvez votre club par département et par ville.`,
+      title: seo?.meta_title || `Clubs de voile en ${data.region.name} | ClubsVoile.fr`,
+      description:
+        seo?.meta_description ||
+        `Annuaire des clubs de voile en ${data.region.name}. Trouvez votre club par département et par ville.`,
       path: `/${params.a}`,
     });
   }
 
   return pageMeta({
-    title: `${data.activity.name} : où pratiquer en France | ClubsVoile.fr`,
-    description: `Découvrez les clubs proposant le ${data.activity.name} en France, ville par ville.`,
+    title: seo?.meta_title || `${data.activity.name} : où pratiquer en France | ClubsVoile.fr`,
+    description:
+      seo?.meta_description ||
+      `Découvrez les clubs proposant le ${data.activity.name} en France, ville par ville.`,
     path: `/${params.a}`,
   });
 }
@@ -56,14 +63,22 @@ export default async function Page({ params }: { params: Params }) {
   if (data.type === 'region') {
     const { region } = data;
     const departments = Array.from(region.departments.entries()).sort((a, b) => a[1].name.localeCompare(b[1].name));
+    const seo = await getSeoContent(`/${params.a}`);
 
-    const ld = [
+    const ld: object[] = [
       breadcrumbLd([
         { name: 'Accueil', path: '/' },
         { name: region.name, path: `/${params.a}` },
       ]),
       itemListLd(departments.map(([deptSlug, d]) => ({ name: d.name, path: `/${params.a}/${deptSlug}` }))),
     ];
+    if (seo?.faq?.length) {
+      ld.push({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: seo.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+      });
+    }
 
     return (
       <div className="cv">
@@ -80,6 +95,14 @@ export default async function Page({ params }: { params: Params }) {
             <p className="lede">Découvrez les clubs de voile par département en {region.name}.</p>
           </div>
         </header>
+
+        {seo?.intro_html && (
+          <section className="block seo-block">
+            <div className="wrap">
+              <div className="seo-content" dangerouslySetInnerHTML={{ __html: seo.intro_html }} />
+            </div>
+          </section>
+        )}
 
         <section className="block">
           <div className="wrap">

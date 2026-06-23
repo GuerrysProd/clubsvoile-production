@@ -126,5 +126,52 @@ export async function GET(request: Request) {
     }
   }
 
+  // --- Pages département ---
+  if (types.includes('department')) {
+    for (const [regionSlug, region] of index.regions) {
+      for (const [deptSlug, dept] of region.departments) {
+        const path = `/${regionSlug}/${deptSlug}`;
+        if (done.has(path)) continue;
+        const cities = Array.from(dept.cities.entries());
+        const clubsCount = cities.reduce((s, [, c]) => s + c.clubs.length, 0);
+        pages.push({
+          path,
+          page_type: 'department',
+          department: dept.name,
+          region: region.name,
+          clubsCount,
+          internalLinks: {
+            regionPage: { name: `Clubs de voile en ${region.name}`, path: `/${regionSlug}` },
+            cities: cities.slice(0, 14).map(([s, c]) => ({ name: `Clubs de voile à ${c.name}`, path: `/${regionSlug}/${deptSlug}/${s}` })),
+          },
+          externalLinks: EXTERNAL_LINKS,
+        });
+        if (pages.length >= limit) return NextResponse.json({ count: pages.length, pages });
+      }
+    }
+  }
+
+  // --- Pages région ---
+  if (types.includes('region')) {
+    for (const [regionSlug, region] of index.regions) {
+      const path = `/${regionSlug}`;
+      if (done.has(path)) continue;
+      const depts = Array.from(region.departments.entries());
+      let clubsCount = 0;
+      for (const [, d] of depts) for (const [, c] of d.cities) clubsCount += c.clubs.length;
+      pages.push({
+        path,
+        page_type: 'region',
+        region: region.name,
+        clubsCount,
+        internalLinks: {
+          departments: depts.map(([s, d]) => ({ name: `Clubs de voile en ${d.name}`, path: `/${regionSlug}/${s}` })),
+        },
+        externalLinks: EXTERNAL_LINKS,
+      });
+      if (pages.length >= limit) return NextResponse.json({ count: pages.length, pages });
+    }
+  }
+
   return NextResponse.json({ count: pages.length, pages });
 }

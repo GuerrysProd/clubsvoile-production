@@ -62,8 +62,9 @@ export default async function Page({ params }: { params: Params }) {
   if (data.type === 'department') {
     const { region, department } = data;
     const cities = Array.from(department.cities.entries()).sort((a, b) => a[1].name.localeCompare(b[1].name));
+    const seo = await getSeoContent(`/${params.a}/${params.b}`);
 
-    const deptLd = [
+    const deptLd: object[] = [
       breadcrumbLd([
         { name: 'Accueil', path: '/' },
         { name: region.name, path: `/${params.a}` },
@@ -71,6 +72,13 @@ export default async function Page({ params }: { params: Params }) {
       ]),
       itemListLd(cities.map(([citySlug, c]) => ({ name: c.name, path: `/${params.a}/${params.b}/${citySlug}` }))),
     ];
+    if (seo?.faq?.length) {
+      deptLd.push({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: seo.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+      });
+    }
 
     return (
       <div className="cv">
@@ -89,6 +97,14 @@ export default async function Page({ params }: { params: Params }) {
             <p className="lede">Découvrez les clubs de voile par ville en {department.name}.</p>
           </div>
         </header>
+
+        {seo?.intro_html && (
+          <section className="block seo-block">
+            <div className="wrap">
+              <div className="seo-content" dangerouslySetInnerHTML={{ __html: seo.intro_html }} />
+            </div>
+          </section>
+        )}
 
         <section className="block">
           <div className="wrap">
