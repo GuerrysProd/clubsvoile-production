@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import CvLogo from './CvLogo';
 
 export default function CvNav() {
   const [open, setOpen] = useState(false);
@@ -10,7 +11,7 @@ export default function CvNav() {
   return (
     <nav className="nav">
       <div className="wrap nav-in">
-        <Link href="/" className="logo" onClick={close}><span className="dot" />ClubsVoile.fr</Link>
+        <Link href="/" className="logo" onClick={close}><CvLogo size={30} /></Link>
 
         <button
           type="button"

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import CvLogo from './CvLogo';
 
 type GeoRegion = { slug: string; name: string; departments: number; clubs: number };
 type GeoActivity = { slug: string; name: string; cities: number; clubs: number };
@@ -25,7 +26,7 @@ export default function CvFooter() {
       <div className="wrap">
         <div className="foot-top">
           <div>
-            <div className="foot-logo"><span className="dot" />ClubsVoile.fr</div>
+            <div className="foot-logo"><CvLogo size={26} /></div>
             <p style={{ marginTop: 12, maxWidth: 260 }}>L&apos;annuaire des clubs de voile français. De l&apos;Optimist à la croisière.</p>
           </div>
           <div className="foot-cols">
