@@ -103,6 +103,7 @@ export default function ClubDetailView({
   const gallery = club.photos?.slice(1, 5) || [];
   const schedule = parseSchedule(club.schedule_open);
   const location = [club.city, club.region].filter(Boolean).join(', ');
+  const cityLabel = (club.city || '').replace(/^\d{4,5}\s+/, '').trim() || club.region || '';
   const mapsHref =
     club.google_maps_url ||
     (club.latitude && club.longitude
@@ -114,7 +115,7 @@ export default function ClubDetailView({
       <header className="club-hero">
         {cover ? (
           <div className="club-cover">
-            <img src={cover} alt={club.name} />
+            <img src={cover} alt={`${club.name}, club de voile à ${cityLabel}`} />
             <div className="club-cover-overlay" />
           </div>
         ) : (
@@ -124,7 +125,7 @@ export default function ClubDetailView({
         <div className="wrap club-head">
           {breadcrumb}
           <div className="club-logo">
-            {club.logo_url ? <img src={club.logo_url} alt={club.name} /> : <span>{getInitials(club.name)}</span>}
+            {club.logo_url ? <img src={club.logo_url} alt={`Logo de ${club.name}`} /> : <span>{getInitials(club.name)}</span>}
           </div>
           <div className="club-head-info">
             {club.activities?.length > 0 && (
@@ -162,7 +163,7 @@ export default function ClubDetailView({
               <div className="club-gallery">
                 {gallery.map((src, i) => (
                   <div className="club-gallery-item" key={i}>
-                    <img src={src} alt={`${club.name} - photo ${i + 2}`} loading="lazy" />
+                    <img src={src} alt={`${club.name}, club de voile à ${cityLabel} — photo ${i + 2}`} loading="lazy" />
                   </div>
                 ))}
               </div>
