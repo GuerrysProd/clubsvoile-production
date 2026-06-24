@@ -135,6 +135,15 @@ export default async function Page({ params }: { params: Params }) {
   const path = `/${params.a}/${params.b}`;
   const seo = await getSeoContent(path);
 
+  // Autres activités proposées dans cette ville (cross-links latéraux,
+  // anti-cannibalisation : chaque page activité×ville cible une intention distincte).
+  const index = await getGeoIndex();
+  const otherActivities = Array.from(index.activities.entries())
+    .filter(([slug, act]) => slug !== params.a && act.cities.has(params.b))
+    .map(([slug, act]) => ({ slug, name: act.name }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, 8);
+
   const actCityLd: object[] = [
     breadcrumbLd([
       { name: 'Accueil', path: '/' },
@@ -208,6 +217,28 @@ export default async function Page({ params }: { params: Params }) {
                     <span key={a} className="pill">{a}</span>
                   ))}
                 </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="block">
+        <div className="wrap">
+          <div className="sec-eyebrow">Aller plus loin</div>
+          <h2 className="sec-title">Autour du {activity.name} à {city.name}</h2>
+          <div className="geo-grid">
+            {cityPath && (
+              <Link href={cityPath} className="geo-card">
+                <span className="name">Tous les clubs de voile à {city.name}</span>
+              </Link>
+            )}
+            <Link href={`/${params.a}`} className="geo-card">
+              <span className="name">{activity.name} dans toute la France</span>
+            </Link>
+            {otherActivities.map((a) => (
+              <Link key={a.slug} href={`/${a.slug}/${params.b}`} className="geo-card">
+                <span className="name">{a.name} à {city.name}</span>
               </Link>
             ))}
           </div>
