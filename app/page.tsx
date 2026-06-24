@@ -126,13 +126,16 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const target = document.getElementById('cv-map');
+    if (!target) return;
+
+    let cancelled = false;
+    let started = false;
+
     const addCss = (href: string) => {
       if (document.querySelector(`link[href="${href}"]`)) return;
       const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l);
     };
-    addCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css');
-    addCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css');
-    addCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css');
 
     const loadScript = (src: string) => new Promise<void>((res) => {
       const existing = document.querySelector(`script[src="${src}"]`) as HTMLScriptElement | null;
@@ -147,8 +150,14 @@ export default function HomePage() {
       document.body.appendChild(s);
     });
 
-    let cancelled = false;
-    (async () => {
+    // Charge Leaflet + initialise la carte uniquement quand la section
+    // approche du viewport (lazy-load → LCP/INP de l'accueil préservés).
+    const initMap = async () => {
+      if (started) return;
+      started = true;
+      addCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css');
+      addCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css');
+      addCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css');
       await loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js');
       await loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js');
       if (cancelled) return;
@@ -164,9 +173,14 @@ export default function HomePage() {
       map.on('click', () => map.scrollWheelZoom.enable());
       mapRef.current = map; clusterRef.current = cluster; readyRef.current = true;
       renderMarkers('');
-    })();
+    };
 
-    return () => { cancelled = true; };
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { io.disconnect(); initMap(); }
+    }, { rootMargin: '300px' });
+    io.observe(target);
+
+    return () => { cancelled = true; io.disconnect(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
