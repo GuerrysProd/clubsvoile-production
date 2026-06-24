@@ -14,6 +14,9 @@ import { pageMeta, breadcrumbLd, SITE_URL } from '@/lib/seo';
 
 type Params = { a: string; b: string; c: string; d: string };
 
+// ISR : fiche club mise en cache, régénérée au plus toutes les heures (crawl sécurisé).
+export const revalidate = 3600;
+
 async function getClub(params: Params) {
   const path = `/${params.a}/${params.b}/${params.c}/${params.d}`;
   const index = await getGeoIndex();

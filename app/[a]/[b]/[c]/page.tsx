@@ -13,6 +13,9 @@ import { pageMeta, breadcrumbLd, itemListLd } from '@/lib/seo';
 
 type Params = { a: string; b: string; c: string };
 
+// ISR : pages mises en cache, régénérées au plus toutes les heures (crawl sécurisé).
+export const revalidate = 3600;
+
 async function getCityData(params: Params) {
   const index = await getGeoIndex();
   const region = index.regions.get(params.a);

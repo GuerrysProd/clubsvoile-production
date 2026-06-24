@@ -2,9 +2,11 @@ import { supabase } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 import { buildClubSlugs, buildClubPath } from '@/lib/geo';
 
-// Toujours relire Supabase (pas de cache figé) — sinon les mises à jour
-// d'activités/description n'apparaissent jamais sur le site.
-export const dynamic = 'force-dynamic';
+// ISR : la liste des clubs est mise en cache et régénérée au plus toutes
+// les 5 min. Évite de recharger ~1300 clubs depuis Supabase + recalculer les
+// slugs à chaque visite (cause des 503 et d'un TTFB élevé). Les mises à jour
+// d'activités/description apparaissent avec un délai max de 5 min.
+export const revalidate = 300;
 
 export async function GET() {
   try {

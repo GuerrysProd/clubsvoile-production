@@ -14,6 +14,10 @@ import { pageMeta, breadcrumbLd, itemListLd } from '@/lib/seo';
 
 type Params = { a: string };
 
+// ISR : chaque page est mise en cache et régénérée au plus toutes les heures.
+// Évite une requête Supabase à chaque hit de crawler sur les ~3000 pages.
+export const revalidate = 3600;
+
 async function getPageData(params: Params) {
   const index = await getGeoIndex();
 
