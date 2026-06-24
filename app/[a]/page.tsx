@@ -171,7 +171,7 @@ export default async function Page({ params }: { params: Params }) {
                   {!!club.rating && (
                     <span className="result-rate">
                       ★ {club.rating}
-                      {club.reviewCount ? ` (${club.reviewCount} avis)` : ''}
+                      {club.reviewCount ? ` (${club.reviewCount} avis Google)` : ''}
                     </span>
                   )}
                   <h3>{club.name}</h3>

@@ -110,7 +110,7 @@ export default function ClubsMap({ activity }: { activity: string }) {
       geo.forEach((c) => {
         const rateHtml = c.rating
           ? '<span class="pop-rate">★ ' + c.rating.toFixed(1)
-            + (c.reviewCount ? ' <span class="pop-reviews">(' + c.reviewCount + ' avis)</span>' : '') + '</span>'
+            + (c.reviewCount ? ' <span class="pop-reviews">(' + c.reviewCount + ' avis Google)</span>' : '') + '</span>'
           : '';
 
         const hours = todayHours(c.scheduleOpen);

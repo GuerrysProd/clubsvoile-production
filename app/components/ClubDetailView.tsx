@@ -147,7 +147,7 @@ export default function ClubDetailView({
               {!!club.rating && (
                 <span className="result-rate">
                   ★ {club.rating}
-                  {club.review_count ? ` (${club.review_count} avis)` : ''}
+                  {club.review_count ? ` (${club.review_count} avis Google)` : ''}
                 </span>
               )}
             </div>

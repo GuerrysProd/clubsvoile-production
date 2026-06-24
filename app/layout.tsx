@@ -6,7 +6,7 @@ import JsonLd from './components/JsonLd';
 import { SITE_URL, SITE_NAME } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Découvrez 1200+ clubs de voile en France. Recherche par région, activité et localisation. Carte interactive, avis certifiés et contact direct.';
+  'Découvrez 1200+ clubs de voile en France. Recherche par région, activité et localisation. Carte interactive, notes Google et contact direct.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
