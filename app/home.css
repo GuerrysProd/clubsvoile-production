@@ -1,10 +1,10 @@
 /* ===== HOMEPAGE CLUBSVOILE — styles ===== */
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap');
+/* Polices chargées via next/font (app/layout.tsx) → --font-display / --font-body. */
 
 .cv{
   --ink:#0B1E33;--ink-2:#11304F;--ink-3:#1B4368;--coral:#FF5436;--coral-deep:#E0381C;
   --cream:#F5F0E6;--foam:#EAF2F3;--paper:#fff;--teal:#0E5C5C;--line:rgba(11,30,51,.12);
-  --display:"Bricolage Grotesque",system-ui,sans-serif;--body:"Inter",system-ui,sans-serif;
+  --display:var(--font-display),"Bricolage Grotesque",system-ui,sans-serif;--body:var(--font-body),"Inter",system-ui,sans-serif;
   font-family:var(--body);color:var(--ink);background:var(--cream);line-height:1.6;-webkit-font-smoothing:antialiased;
 }
 .cv *{box-sizing:border-box}

@@ -1,9 +1,15 @@
 // app/layout.tsx
 import type { Metadata } from 'next';
+import { Bricolage_Grotesque, Inter } from 'next/font/google';
 import './globals.css';
 import Chrome from './components/Chrome';
 import JsonLd from './components/JsonLd';
 import { SITE_URL, SITE_NAME } from '@/lib/seo';
+
+// Polices auto-hébergées (pas de requête bloquante vers Google Fonts,
+// font-display: swap + preload automatiques).
+const display = Bricolage_Grotesque({ subsets: ['latin'], variable: '--font-display', display: 'swap' });
+const body = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap' });
 
 const DESCRIPTION =
   'Découvrez 1200+ clubs de voile en France. Recherche par région, activité et localisation. Carte interactive, notes Google et contact direct.';
@@ -57,7 +63,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
+    <html lang="fr" className={`${display.variable} ${body.variable}`}>
       <body>
         <JsonLd data={siteLd} />
         <Chrome>{children}</Chrome>
