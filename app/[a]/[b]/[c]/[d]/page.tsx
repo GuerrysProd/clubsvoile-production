@@ -95,15 +95,10 @@ export default async function ClubDetailPage({ params }: { params: Params }) {
     ...(typeof club.latitude === 'number' && typeof club.longitude === 'number'
       ? { geo: { '@type': 'GeoCoordinates', latitude: club.latitude, longitude: club.longitude } }
       : {}),
-    ...(club.rating && club.review_count
-      ? {
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: club.rating,
-            reviewCount: club.review_count,
-          },
-        }
-      : {}),
+    // Pas d'AggregateRating : les notes proviennent des fiches Google (avis
+    // tiers, non collectés par le site). Le baliser violerait les consignes
+    // Google sur les rich results (risque d'action manuelle). À réactiver le
+    // jour où le site collecte ses propres avis first-party.
   };
 
   const crumbLd = breadcrumbLd([
