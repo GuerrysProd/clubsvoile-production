@@ -144,7 +144,10 @@
 .cv .foot-col h4{color:#fff;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
 .cv .foot-col a{display:block;color:rgba(255,255,255,.6);margin-bottom:8px}
 .cv .foot-col a:hover{color:var(--coral)}
-.cv .foot-bottom{padding-top:24px;font-size:13px;color:rgba(255,255,255,.45)}
+.cv .foot-bottom{padding-top:24px;font-size:13px;color:rgba(255,255,255,.45);display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:space-between;align-items:center}
+.cv .foot-legal{display:flex;flex-wrap:wrap;gap:8px 18px}
+.cv .foot-legal a{color:rgba(255,255,255,.6)}
+.cv .foot-legal a:hover{color:var(--coral)}
 
 /* ----- Page recherche ----- */
 .cv .search-hero{background:var(--ink);color:#fff;padding:64px 0 48px}

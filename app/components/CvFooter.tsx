@@ -51,7 +51,15 @@ export default function CvFooter() {
             )}
           </div>
         </div>
-        <div className="foot-bottom">© 2026 ClubsVoile.fr — Tous droits réservés.</div>
+        <div className="foot-bottom">
+          <span>© 2026 ClubsVoile.fr — Tous droits réservés.</span>
+          <nav className="foot-legal">
+            <Link href="/a-propos">À propos</Link>
+            <Link href="/mentions-legales">Mentions légales</Link>
+            <Link href="/confidentialite">Confidentialité</Link>
+            <Link href="/contact">Contact</Link>
+          </nav>
+        </div>
       </div>
     </footer>
   );

@@ -21,6 +21,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Pages statiques
   add('/', 1.0, 'daily');
   add('/activites', 0.7, 'monthly');
+  add('/contact', 0.5, 'yearly');
+  add('/a-propos', 0.4, 'yearly');
+  add('/mentions-legales', 0.2, 'yearly');
+  add('/confidentialite', 0.2, 'yearly');
 
   // Pages activité (national)
   for (const a of ACTIVITIES) add(`/${slugify(a.key)}`, 0.8, 'weekly');
