@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import './home.css';
 import CvNav from './components/CvNav';
@@ -60,14 +60,25 @@ function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] || c));
 }
 
-const FEAT = [
-  { n: 'Société des Régates de Saint-Malo', loc: 'Saint-Malo, Bretagne', r: '4.8', tag: 'Intra-muros', acts: ['Catamaran', 'Optimist', 'Croisière'], img: 'https://images.unsplash.com/photo-1502209877429-2c1f55a44f6d?w=600&q=70&auto=format&fit=crop' },
-  { n: 'Yacht Club de Hyères', loc: 'Hyères, PACA', r: '4.7', tag: "Presqu'île de Giens", acts: ['Wingfoil', 'Kitesurf', 'Planche à voile'], img: 'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=600&q=70&auto=format&fit=crop' },
-  { n: 'Centre Nautique de La Rochelle', loc: 'La Rochelle, N.-Aquitaine', r: '4.9', tag: 'Les Minimes', acts: ['Croisière', 'Catamaran', 'Paddle'], img: 'https://images.unsplash.com/photo-1543242594-c8bae8b9e708?w=600&q=70&auto=format&fit=crop' },
-  { n: 'Hossegor Glisse', loc: 'Hossegor, Landes', r: '4.8', tag: 'Spot de glisse', acts: ['Wingfoil', 'eFoil', 'Kitesurf'], img: 'https://images.unsplash.com/photo-1502933691298-84fc14542831?w=600&q=70&auto=format&fit=crop' },
-  { n: 'Cercle Nautique de Sète', loc: 'Sète, Occitanie', r: '4.6', tag: 'Étang de Thau', acts: ['Kitesurf', 'Wingfoil', 'Planche à voile'], img: 'https://images.unsplash.com/photo-1566024287286-457247b70310?w=600&q=70&auto=format&fit=crop' },
-  { n: 'Yacht Club de Cannes', loc: "Cannes, Côte d'Azur", r: '4.7', tag: 'Baie de Cannes', acts: ['Catamaran', 'Croisière', 'Wingfoil'], img: 'https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=600&q=70&auto=format&fit=crop' },
+// Sélection éditoriale « À l'affiche » (ordre conservé).
+const FEATURED_IDS = [
+  '1faeecf6-3254-4f73-9a61-4962189a0709', // Club la Pelle — Marseille
+  'a0d89e7a-a301-47bc-ab96-acebf9f47889', // Yacht Club de Toulon
+  'ed884b45-40b7-46e0-8e96-20de8670ea87', // Centre Nautique de Brest
+  '258fa8ba-0d39-4035-8508-d07e7b6d45a8', // Cannes Jeunesse — Base du Mourre Rouge
+  'b045ab42-2b9b-4bc7-9d0c-a6d11c7b2f9e', // Ecole de Voile Courseulles-sur-Mer
+  'e8d04a71-5ad7-4b3c-b3e9-a9bd4365c25b', // eFoil Sanguinet
 ];
+
+function getInitials(name: string) {
+  return (name || '')
+    .replace(/[^A-Za-zÀ-ÿ ]/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() || '')
+    .join('');
+}
 
 /* ----------------------------- COMPOSANT ----------------------------- */
 export default function HomePage() {
@@ -219,6 +230,12 @@ export default function HomePage() {
   useEffect(() => { if (readyRef.current) renderMarkers(sup); /* eslint-disable-next-line */ }, [sup]);
 
   const visibleCount = sup ? clubs.filter(c => c.activities.includes(sup)).length : clubs.length;
+
+  // Sélection éditoriale « À l'affiche » (par identifiant), avec données à jour.
+  const featured = useMemo(() => {
+    const byId = new Map(clubs.map((c) => [c.id, c]));
+    return FEATURED_IDS.map((id) => byId.get(id)).filter(Boolean) as GeoClub[];
+  }, [clubs]);
 
   const chooseRegion = (r: string) => {
     setRegion(r); setDep(''); setCity('');
@@ -399,23 +416,24 @@ export default function HomePage() {
       <section className="block clubs" id="clubs">
         <div className="wrap">
           <div className="sec-eyebrow">À l&apos;affiche</div>
-          <h2 className="sec-title">Quelques clubs qui valent le détour.</h2>
+          <h2 className="sec-title">Les clubs les plus plébiscités.</h2>
           <div className="cards">
-            {FEAT.map(c => (
-              <article key={c.n} className="card">
-                <div className="card-img">
-                  <img src={c.img} alt="" loading="lazy" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} />
-                  <span className="card-tag">{c.tag}</span><span className="card-rate">★ {c.r}</span>
+            {featured.map(c => (
+              <Link key={c.id} href={c.path || ('/club/' + c.id)} className="card">
+                <div className="card-img card-img--initials">
+                  <span className="card-initials">{getInitials(c.name)}</span>
+                  {!!c.rating && <span className="card-rate">★ {c.rating.toFixed(1)}</span>}
                 </div>
                 <div className="card-body">
-                  <h3>{c.n}</h3>
+                  <h3>{c.name}</h3>
                   <div className="card-loc">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-6.3-7-11a7 7 0 0114 0c0 4.7-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
-                    {c.loc}
+                    {(c.city || '').replace(/^\d{4,5}\s+/, '')}
                   </div>
-                  <div className="card-acts">{c.acts.map(a => <span key={a} className="pill">{a}</span>)}</div>
+                  {!!c.reviewCount && <div className="card-reviews">{c.reviewCount.toLocaleString('fr-FR')} avis Google</div>}
+                  <div className="card-acts">{(c.activities || []).filter(a => a !== 'En cours de traitement').slice(0, 3).map(a => <span key={a} className="pill">{a}</span>)}</div>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>
