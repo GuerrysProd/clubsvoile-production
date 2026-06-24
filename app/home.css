@@ -284,7 +284,7 @@
 .cv .club-head{position:relative;display:flex;align-items:flex-end;gap:22px;padding-bottom:28px;margin-top:-64px}
 @media(max-width:720px){.cv .club-head{flex-direction:column;align-items:flex-start;gap:16px;margin-top:-44px}}
 
-.cv .club-logo{width:128px;height:128px;min-width:128px;border-radius:50%;background:var(--paper);border:5px solid var(--paper);box-shadow:0 14px 32px -14px rgba(11,30,51,.5);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.cv .club-logo{position:relative;width:128px;height:128px;min-width:128px;border-radius:50%;background:var(--paper);border:5px solid var(--paper);box-shadow:0 14px 32px -14px rgba(11,30,51,.5);overflow:hidden;display:flex;align-items:center;justify-content:center}
 .cv .club-logo img{width:100%;height:100%;object-fit:cover}
 .cv .club-logo span{font-family:var(--display);font-weight:800;font-size:40px;color:var(--coral)}
 @media(max-width:720px){.cv .club-logo{width:96px;height:96px;min-width:96px}.cv .club-logo span{font-size:30px}}
@@ -306,7 +306,7 @@
 .cv .club-section p{margin:0;color:rgba(11,30,51,.68);line-height:1.7}
 
 .cv .club-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
-.cv .club-gallery-item{aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:var(--foam)}
+.cv .club-gallery-item{position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:var(--foam)}
 .cv .club-gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
 .cv .club-gallery-item:hover img{transform:scale(1.05)}
 

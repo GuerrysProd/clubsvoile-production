@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import MapSimple from './MapSimple';
 import type { Club } from '@/lib/supabase';
 
@@ -115,7 +116,7 @@ export default function ClubDetailView({
       <header className="club-hero">
         {cover ? (
           <div className="club-cover">
-            <img src={cover} alt={`${club.name}, club de voile à ${cityLabel}`} />
+            <Image src={cover} alt={`${club.name}, club de voile à ${cityLabel}`} fill priority sizes="100vw" style={{ objectFit: 'cover' }} />
             <div className="club-cover-overlay" />
           </div>
         ) : (
@@ -125,7 +126,7 @@ export default function ClubDetailView({
         <div className="wrap club-head">
           {breadcrumb}
           <div className="club-logo">
-            {club.logo_url ? <img src={club.logo_url} alt={`Logo de ${club.name}`} /> : <span>{getInitials(club.name)}</span>}
+            {club.logo_url ? <Image src={club.logo_url} alt={`Logo de ${club.name}`} fill sizes="128px" style={{ objectFit: 'cover' }} /> : <span>{getInitials(club.name)}</span>}
           </div>
           <div className="club-head-info">
             {club.activities?.length > 0 && (
@@ -163,7 +164,7 @@ export default function ClubDetailView({
               <div className="club-gallery">
                 {gallery.map((src, i) => (
                   <div className="club-gallery-item" key={i}>
-                    <img src={src} alt={`${club.name}, club de voile à ${cityLabel} — photo ${i + 2}`} loading="lazy" />
+                    <Image src={src} alt={`${club.name}, club de voile à ${cityLabel} — photo ${i + 2}`} fill sizes="(max-width:880px) 50vw, 200px" style={{ objectFit: 'cover' }} />
                   </div>
                 ))}
               </div>

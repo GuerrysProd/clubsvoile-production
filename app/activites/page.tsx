@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import '../home.css';
 import CvNav from '../components/CvNav';
@@ -48,7 +49,8 @@ export default async function ActivitesPage() {
           <div className="act-grid">
             {activities.map((a) => (
               <Link key={a.slug} href={`/${a.slug}`} className="act-card">
-                <div className="act-img" style={{ backgroundImage: `url(${a.image})` }}>
+                <div className="act-img">
+                  {a.image && <Image src={a.image} alt="" fill sizes="(max-width:880px) 100vw, 280px" style={{ objectFit: 'cover' }} />}
                   {a.trend && <span className="trend">Tendance</span>}
                   <svg className="act-icon ic"><use href={'#' + a.icon} /></svg>
                 </div>
