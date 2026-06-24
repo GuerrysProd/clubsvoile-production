@@ -5,7 +5,7 @@ import CvNav from '../components/CvNav';
 import CvFooter from '../components/CvFooter';
 import ContactForm from '../components/ContactForm';
 import JsonLd from '../components/JsonLd';
-import { pageMeta, breadcrumbLd } from '@/lib/seo';
+import { pageMeta, breadcrumbLd, SITE_URL } from '@/lib/seo';
 
 export const metadata: Metadata = pageMeta({
   title: 'Référencer votre club de voile — gratuit | ClubsVoile.fr',
@@ -41,10 +41,33 @@ export default function ContactPage() {
   return (
     <div className="cv">
       <JsonLd
-        data={breadcrumbLd([
-          { name: 'Accueil', path: '/' },
-          { name: 'Contact', path: '/contact' },
-        ])}
+        data={[
+          breadcrumbLd([
+            { name: 'Accueil', path: '/' },
+            { name: 'Contact', path: '/contact' },
+          ]),
+          {
+            '@context': 'https://schema.org',
+            '@type': 'ContactPage',
+            name: 'Contact — ClubsVoile.fr',
+            url: `${SITE_URL}/contact`,
+            description:
+              'Contactez ClubsVoile.fr pour référencer gratuitement votre club de voile ou pour toute question.',
+            mainEntity: {
+              '@type': 'Organization',
+              name: 'ClubsVoile.fr',
+              url: SITE_URL,
+              email: 'contact@clubsvoile.fr',
+              contactPoint: {
+                '@type': 'ContactPoint',
+                contactType: 'customer support',
+                email: 'contact@clubsvoile.fr',
+                areaServed: 'FR',
+                availableLanguage: 'French',
+              },
+            },
+          },
+        ]}
       />
       <CvNav />
 

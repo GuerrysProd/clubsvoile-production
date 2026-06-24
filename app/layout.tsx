@@ -43,6 +43,20 @@ const siteLd = [
     name: SITE_NAME,
     url: SITE_URL,
     description: DESCRIPTION,
+    logo: `${SITE_URL}/icon.svg`,
+    email: 'contact@clubsvoile.fr',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: 'contact@clubsvoile.fr',
+      areaServed: 'FR',
+      availableLanguage: 'French',
+    },
+    sameAs: [
+      'https://www.instagram.com/clubsvoile/',
+      'https://www.facebook.com/profile.php?id=61591121471285',
+      'https://www.linkedin.com/company/130524313',
+    ],
   },
   {
     '@context': 'https://schema.org',
