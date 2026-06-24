@@ -208,6 +208,19 @@
 
 .cv .no-results,.cv .search-loading{padding:60px 0;text-align:center;color:rgba(11,30,51,.55);font-size:15px}
 
+/* ----- FAQ (accordéon) ----- */
+.cv .faq-block{padding-top:0}
+.cv .faq-list{margin-top:30px;max-width:760px;display:flex;flex-direction:column;gap:10px}
+.cv .faq-item{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cv .faq-item summary{list-style:none;cursor:pointer;padding:17px 20px;font-family:var(--display);font-weight:700;font-size:16px;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:14px}
+.cv .faq-item summary::-webkit-details-marker{display:none}
+.cv .faq-item summary::after{content:"+";font-size:24px;font-weight:400;line-height:1;color:var(--coral);transition:transform .2s;flex:0 0 auto}
+.cv .faq-item[open] summary::after{transform:rotate(45deg)}
+.cv .faq-item summary:hover{color:var(--coral-deep)}
+.cv .faq-item p{margin:0;padding:0 20px 18px;color:rgba(11,30,51,.7);line-height:1.65;font-size:15px}
+.cv .faq-item p a{color:var(--coral-deep);font-weight:500;text-decoration:underline;text-underline-offset:2px}
+.cv .faq-item p a:hover{color:var(--coral)}
+
 /* ----- Page contact ----- */
 .cv .contact-layout{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:start}
 @media(max-width:880px){.cv .contact-layout{grid-template-columns:1fr;gap:30px}}

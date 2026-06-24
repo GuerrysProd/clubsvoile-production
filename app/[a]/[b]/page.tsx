@@ -5,6 +5,7 @@ import '../../home.css';
 import CvNav from '../../components/CvNav';
 import CvFooter from '../../components/CvFooter';
 import JsonLd from '../../components/JsonLd';
+import Faq from '../../components/Faq';
 import { getGeoIndex } from '@/lib/clubsData';
 import { getSeoContent } from '@/lib/seoContent';
 import { pageMeta, breadcrumbLd, itemListLd } from '@/lib/seo';
@@ -122,6 +123,8 @@ export default async function Page({ params }: { params: Params }) {
           </div>
         </section>
 
+        <Faq items={seo?.faq} />
+
         <CvFooter />
       </div>
     );
@@ -210,6 +213,8 @@ export default async function Page({ params }: { params: Params }) {
           </div>
         </div>
       </section>
+
+      <Faq items={seo?.faq} />
 
       <CvFooter />
     </div>

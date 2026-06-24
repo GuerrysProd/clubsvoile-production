@@ -10,6 +10,7 @@ import { ACTIVITIES } from '@/lib/activities';
 import { slugify } from '@/lib/slug';
 import ClubsMap from '../components/ClubsMap';
 import JsonLd from '../components/JsonLd';
+import Faq from '../components/Faq';
 import { pageMeta, breadcrumbLd, itemListLd } from '@/lib/seo';
 
 type Params = { a: string };
@@ -123,6 +124,8 @@ export default async function Page({ params }: { params: Params }) {
             </div>
           </div>
         </section>
+
+        <Faq items={seo?.faq} />
 
         <CvFooter />
       </div>

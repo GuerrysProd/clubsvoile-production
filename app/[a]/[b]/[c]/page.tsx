@@ -5,6 +5,7 @@ import '../../../home.css';
 import CvNav from '../../../components/CvNav';
 import CvFooter from '../../../components/CvFooter';
 import JsonLd from '../../../components/JsonLd';
+import Faq from '../../../components/Faq';
 import { getGeoIndex } from '@/lib/clubsData';
 import { getSeoContent } from '@/lib/seoContent';
 import { ACTIVITIES } from '@/lib/activities';
@@ -147,6 +148,8 @@ export default async function CityPage({ params }: { params: Params }) {
           </div>
         </section>
       )}
+
+      <Faq items={seo?.faq} />
 
       <CvFooter />
     </div>
