@@ -1,6 +1,6 @@
 import { FR_DEPARTMENTS } from './france-departments';
 import { slugify } from './slug';
-import { ACTIVITIES } from './activities';
+import { ACTIVITIES, activityLabel } from './activities';
 
 export interface GeoClubInput {
   id: string;
@@ -133,7 +133,7 @@ export function buildGeoIndex(clubs: GeoClubInput[]): GeoIndex {
   const clubPaths: GeoIndex['clubPaths'] = new Map();
   const pathToClubId: GeoIndex['pathToClubId'] = new Map();
 
-  const activityNameBySlug = new Map(ACTIVITIES.map((a) => [slugify(a.key), a.key]));
+  const activityNameBySlug = new Map(ACTIVITIES.map((a) => [slugify(a.key), activityLabel(slugify(a.key), a.key)]));
 
   for (const club of clubs) {
     const geo = getClubGeo(club);

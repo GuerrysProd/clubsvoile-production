@@ -6,7 +6,7 @@ import CvNav from '../components/CvNav';
 import CvFooter from '../components/CvFooter';
 import { getGeoIndex } from '@/lib/clubsData';
 import { getSeoContent } from '@/lib/seoContent';
-import { ACTIVITIES } from '@/lib/activities';
+import { ACTIVITIES, activityLabel } from '@/lib/activities';
 import { slugify } from '@/lib/slug';
 import ClubsMap from '../components/ClubsMap';
 import JsonLd from '../components/JsonLd';
@@ -18,6 +18,11 @@ type Params = { a: string };
 // ISR : chaque page est mise en cache et régénérée au plus toutes les heures.
 // Évite une requête Supabase à chaque hit de crawler sur les ~3000 pages.
 export const revalidate = 3600;
+
+// slug d'activité -> libellé affiché (pour le maillage région↔activité).
+const ACTIVITY_NAME_BY_SLUG = new Map(
+  ACTIVITIES.map((a) => [slugify(a.key), activityLabel(slugify(a.key), a.key)] as const)
+);
 
 async function getPageData(params: Params) {
   const index = await getGeoIndex();
@@ -31,7 +36,7 @@ async function getPageData(params: Params) {
   // Activité canonique mais qu'aucun club n'a encore renseignée : on
   // affiche tout de même la page (vide) plutôt qu'un 404.
   const known = ACTIVITIES.find((act) => slugify(act.key) === params.a);
-  if (known) return { type: 'activity' as const, activity: { name: known.key, cities: new Map() } };
+  if (known) return { type: 'activity' as const, activity: { name: activityLabel(params.a, known.key), cities: new Map() } };
 
   return null;
 }
@@ -69,6 +74,19 @@ export default async function Page({ params }: { params: Params }) {
     const { region } = data;
     const departments = Array.from(region.departments.entries()).sort((a, b) => a[1].name.localeCompare(b[1].name));
     const seo = await getSeoContent(`/${params.a}`);
+
+    // Maillage région -> activité : activités réellement pratiquées dans la région.
+    const actCount = new Map<string, number>();
+    for (const [, dept] of region.departments)
+      for (const [, city] of dept.cities)
+        for (const club of city.clubs)
+          for (const act of club.activities) {
+            const s = slugify(act);
+            if (ACTIVITY_NAME_BY_SLUG.has(s)) actCount.set(s, (actCount.get(s) || 0) + 1);
+          }
+    const regionActivities = Array.from(actCount.entries())
+      .map(([slug, count]) => ({ slug, count, name: ACTIVITY_NAME_BY_SLUG.get(slug)! }))
+      .sort((a, b) => b.count - a.count);
 
     const ld: object[] = [
       breadcrumbLd([
@@ -111,6 +129,8 @@ export default async function Page({ params }: { params: Params }) {
 
         <section className="block">
           <div className="wrap">
+            <div className="sec-eyebrow">Par département</div>
+            <h2 className="sec-title">Les clubs de voile en {region.name}, département par département.</h2>
             <div className="geo-grid">
               {departments.map(([deptSlug, department]) => {
                 const count = Array.from(department.cities.values()).reduce((sum, c) => sum + c.clubs.length, 0);
@@ -125,6 +145,24 @@ export default async function Page({ params }: { params: Params }) {
           </div>
         </section>
 
+        {regionActivities.length > 0 && (
+          <section className="block">
+            <div className="wrap">
+              <div className="sec-eyebrow">Par activité</div>
+              <h2 className="sec-title">Les activités nautiques pratiquées en {region.name}.</h2>
+              <p className="sec-intro">Choisissez une discipline pour découvrir où la pratiquer partout en France.</p>
+              <div className="geo-grid">
+                {regionActivities.map((a) => (
+                  <Link key={a.slug} href={`/${a.slug}`} className="geo-card">
+                    <span className="name">{a.name}</span>
+                    <span className="count">{a.count} club{a.count > 1 ? 's' : ''}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         <Faq items={seo?.faq} />
 
         <CvFooter />
@@ -138,6 +176,18 @@ export default async function Page({ params }: { params: Params }) {
     .flatMap((c) => c.clubs)
     .sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.reviewCount || 0) - (a.reviewCount || 0))
     .slice(0, 6);
+
+  // Maillage activité -> région : régions où cette activité est proposée.
+  const index = await getGeoIndex();
+  const regionCount = new Map<string, number>();
+  for (const [, c] of activity.cities)
+    for (const club of c.clubs) {
+      const rSlug = club.path.split('/')[1];
+      if (rSlug && rSlug !== 'france') regionCount.set(rSlug, (regionCount.get(rSlug) || 0) + 1);
+    }
+  const activityRegions = Array.from(regionCount.entries())
+    .map(([slug, count]) => ({ slug, count, name: index.regions.get(slug)?.name || slug }))
+    .sort((a, b) => b.count - a.count);
 
   const activityLd = [
     breadcrumbLd([
@@ -205,6 +255,24 @@ export default async function Page({ params }: { params: Params }) {
                 <Link key={citySlug} href={`/${params.a}/${citySlug}`} className="geo-card">
                   <span className="name">{activity.name} à {c.name}</span>
                   <span className="count">{c.clubs.length} club{c.clubs.length > 1 ? 's' : ''}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {activityRegions.length > 0 && (
+        <section className="block">
+          <div className="wrap">
+            <div className="sec-eyebrow">Par région</div>
+            <h2 className="sec-title">Le {activity.name}, région par région.</h2>
+            <p className="sec-intro">Explorez les clubs et écoles qui proposent le {activity.name} dans chaque région.</p>
+            <div className="geo-grid">
+              {activityRegions.map((r) => (
+                <Link key={r.slug} href={`/${r.slug}`} className="geo-card">
+                  <span className="name">{r.name}</span>
+                  <span className="count">{r.count} club{r.count > 1 ? 's' : ''}</span>
                 </Link>
               ))}
             </div>

@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { getGeoIndex } from '@/lib/clubsData';
 import { getClubGeo } from '@/lib/geo';
 import { slugify } from '@/lib/slug';
-import { pageMeta, breadcrumbLd, SITE_URL } from '@/lib/seo';
+import { pageMeta, breadcrumbLd, openingHoursLd, SITE_URL } from '@/lib/seo';
 
 type Params = { a: string; b: string; c: string; d: string };
 
@@ -72,6 +72,7 @@ export default async function ClubDetailPage({ params }: { params: Params }) {
   );
 
   const path = `/${params.a}/${params.b}/${params.c}/${params.d}`;
+  const openingHours = openingHoursLd(club.schedule_open);
   const businessLd = {
     '@context': 'https://schema.org',
     '@type': 'SportsActivityLocation',
@@ -95,6 +96,7 @@ export default async function ClubDetailPage({ params }: { params: Params }) {
     ...(typeof club.latitude === 'number' && typeof club.longitude === 'number'
       ? { geo: { '@type': 'GeoCoordinates', latitude: club.latitude, longitude: club.longitude } }
       : {}),
+    ...(openingHours.length ? { openingHoursSpecification: openingHours } : {}),
     // Pas d'AggregateRating : les notes proviennent des fiches Google (avis
     // tiers, non collectés par le site). Le baliser violerait les consignes
     // Google sur les rich results (risque d'action manuelle). À réactiver le

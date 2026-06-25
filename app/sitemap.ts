@@ -39,6 +39,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Pages statiques (date de build)
   add('/', 1.0, now, 'daily');
   add('/activites', 0.7, now, 'monthly');
+  // Pages-piliers (têtes de requête commerciales)
+  for (const p of ['/club-de-voile', '/ecole-de-voile', '/stage-de-voile']) {
+    add(p, 0.8, seoUpdated.get(p) ?? now, 'weekly');
+  }
   add('/contact', 0.5, now, 'yearly');
   add('/a-propos', 0.4, now, 'yearly');
   add('/mentions-legales', 0.2, now, 'yearly');

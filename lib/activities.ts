@@ -30,3 +30,17 @@ export const ACTIVITIES: ActivityOption[] = [
 ];
 
 export const ACTIVITY_LABELS = ACTIVITIES.map((a) => a.key);
+
+// Libellé d'affichage des pages-piliers d'activité (title / H1 / fil d'Ariane),
+// aligné sur le terme réellement recherché (données Semrush). Le slug, lui,
+// reste dérivé de `key` et DOIT matcher les valeurs stockées dans
+// `clubs.activities` — on ne modifie donc QUE l'affichage, jamais l'URL ni la
+// correspondance en base. Slugs concernés : `slugify(key)`.
+const ACTIVITY_LABEL_OVERRIDE: Record<string, string> = {
+  'planche-a-voile-windsurf': 'Planche à voile', // recherché « planche à voile » (2 900/mois)
+};
+
+/** Libellé d'affichage d'une activité à partir de son slug (défaut : sa clé). */
+export function activityLabel(slug: string, fallbackKey: string): string {
+  return ACTIVITY_LABEL_OVERRIDE[slug] || fallbackKey;
+}
