@@ -59,15 +59,16 @@ export default async function ClubDetailPage({ params }: { params: Params }) {
     }
   }
 
+  // Clubs similaires : autres clubs réels de la même ville (mêmes données géo).
+  const cityEntry = index.regions.get(geo.regionSlug)?.departments.get(geo.departmentSlug)?.cities.get(geo.citySlug);
+  const similarClubs = (cityEntry?.clubs || []).filter((c) => c.id !== club.id).slice(0, 3);
+
   const breadcrumb = (
-    <nav className="breadcrumb">
-      <Link href="/">Accueil</Link>
-      <span>/</span>
-      <Link href={`/${params.a}`}>{geo.regionName}</Link>
-      <span>/</span>
-      <Link href={`/${params.a}/${params.b}`}>{geo.departmentName}</Link>
-      <span>/</span>
-      <Link href={`/${params.a}/${params.b}/${params.c}`}>{geo.cityName}</Link>
+    <nav className="cap-bc">
+      <Link href="/">Accueil</Link><span>›</span>
+      <Link href={`/${params.a}`}>{geo.regionName}</Link><span>›</span>
+      <Link href={`/${params.a}/${params.b}/${params.c}`}>{geo.cityName}</Link><span>›</span>
+      <span className="cur">{club.name}</span>
     </nav>
   );
 
@@ -115,7 +116,7 @@ export default async function ClubDetailPage({ params }: { params: Params }) {
     <div className="cv">
       <JsonLd data={[businessLd, crumbLd]} />
       <CvNav />
-      <ClubDetailView club={club} breadcrumb={breadcrumb} activityLinks={activityLinks} />
+      <ClubDetailView club={club} breadcrumb={breadcrumb} activityLinks={activityLinks} similarClubs={similarClubs} />
       <CvFooter />
     </div>
   );

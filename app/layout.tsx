@@ -1,14 +1,17 @@
 // app/layout.tsx
 import type { Metadata } from 'next';
-import { Bricolage_Grotesque, Inter } from 'next/font/google';
+import { Space_Grotesk, Newsreader, Inter } from 'next/font/google';
 import './globals.css';
 import Chrome from './components/Chrome';
 import JsonLd from './components/JsonLd';
 import { SITE_URL, SITE_NAME } from '@/lib/seo';
 
 // Polices auto-hébergées (pas de requête bloquante vers Google Fonts,
-// font-display: swap + preload automatiques).
-const display = Bricolage_Grotesque({ subsets: ['latin'], variable: '--font-display', display: 'swap' });
+// font-display: swap + preload automatiques). Système « Cap » :
+// Space Grotesk (titres/UI, caractère sportif), Newsreader italic (accents
+// éditoriaux premium), Inter (texte courant).
+const display = Space_Grotesk({ subsets: ['latin'], variable: '--font-display', display: 'swap' });
+const serif = Newsreader({ subsets: ['latin'], style: ['normal', 'italic'], variable: '--font-serif', display: 'swap', adjustFontFallback: false });
 const body = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap' });
 
 const DESCRIPTION =
@@ -77,7 +80,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${display.variable} ${body.variable}`}>
+    <html lang="fr" className={`${display.variable} ${serif.variable} ${body.variable}`}>
       <body>
         <JsonLd data={siteLd} />
         <Chrome>{children}</Chrome>

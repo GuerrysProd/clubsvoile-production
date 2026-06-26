@@ -23,6 +23,12 @@ export interface PillarConfig {
   activitiesTitle: string;
   regionsTitle: string;
   citiesTitle: string;
+  /** Repère visuel du hero (texte générique, pas de chiffre inventé). */
+  photoBadge: { label: string; value: string };
+  /** 3 bénéfices courts affichés sous le hero. */
+  benefits: { icon: 'progress' | 'diploma' | 'ages'; title: string; text: string }[];
+  /** 3 profils types, pour aider l'utilisateur à se situer. */
+  profiles: { tag: string; title: string; text: string }[];
 }
 
 export const PILLARS: Record<string, PillarConfig> = {
@@ -62,6 +68,17 @@ export const PILLARS: Record<string, PillarConfig> = {
     activitiesTitle: 'Quel support pour votre stage de voile ?',
     regionsTitle: 'Stages de voile par région',
     citiesTitle: 'Stages de voile : les villes les plus actives',
+    photoBadge: { label: 'Stages encadrés', value: 'dès 4 ans' },
+    benefits: [
+      { icon: 'progress', title: 'Progresser vite', text: 'Un format intensif sur plusieurs jours fait souvent plus progresser qu’une saison de séances espacées.' },
+      { icon: 'diploma', title: 'Encadrement diplômé', text: 'Clubs et écoles labellisés FFVoile, moniteurs diplômés, matériel et sécurité encadrés.' },
+      { icon: 'ages', title: 'Pour tous les âges', text: 'Du moussaillon au grand débutant adulte : un format adapté à chaque profil.' },
+    ],
+    profiles: [
+      { tag: '4 — 12 ANS', title: 'Enfant', text: 'Moussaillon et Optimist, en séances ludiques encadrées. Sécurité, jeux et premières sensations sur l’eau.' },
+      { tag: '12 — 17 ANS', title: 'Ado', text: 'Catamaran, planche, dériveur double. Stages à la semaine, esprit de groupe et premiers apprentissages techniques.' },
+      { tag: '18 ANS ET +', title: 'Adulte', text: 'Initiation ou perfectionnement, cours particuliers, habitable ou glisse. Formats week-end ou semaine selon le club.' },
+    ],
   },
   'ecole-de-voile': {
     slug: 'ecole-de-voile',
@@ -98,6 +115,17 @@ export const PILLARS: Record<string, PillarConfig> = {
     activitiesTitle: 'Apprendre sur tous les supports',
     regionsTitle: 'Écoles de voile par région',
     citiesTitle: 'Écoles de voile : les villes les plus actives',
+    photoBadge: { label: 'Écoles labellisées', value: 'FFVoile' },
+    benefits: [
+      { icon: 'diploma', title: 'Label FFVoile', text: 'Un repère de qualité sur l’encadrement, la sécurité et le matériel, à vérifier sur la fiche de chaque club.' },
+      { icon: 'progress', title: 'Cours réguliers', text: 'À l’année, souvent le mercredi et le week-end, pour progresser à son rythme plutôt qu’en intensif.' },
+      { icon: 'ages', title: 'Aucun âge requis', text: 'Les écoles accueillent les enfants dès 4 ans et les adultes débutants, sans prérequis sauf savoir nager.' },
+    ],
+    profiles: [
+      { tag: 'DÉCOUVERTE', title: 'Premier contact', text: 'Une séance ou un stage découverte avant de s’engager à l’année — proposé par la plupart des écoles.' },
+      { tag: 'COURS À L’ANNÉE', title: 'Pratique régulière', text: 'Inscription à l’école, licence FFVoile incluant l’assurance, passation des niveaux fédéraux.' },
+      { tag: 'PERFECTIONNEMENT', title: 'Confirmé', text: 'Cours techniques, préparation à la régate, ou passage vers d’autres supports (catamaran, habitable, glisse).' },
+    ],
   },
   'club-de-voile': {
     slug: 'club-de-voile',
@@ -134,6 +162,17 @@ export const PILLARS: Record<string, PillarConfig> = {
     activitiesTitle: 'Les activités proposées en club',
     regionsTitle: 'Clubs de voile par région',
     citiesTitle: 'Clubs de voile : les villes les plus actives',
+    photoBadge: { label: 'Vie associative', value: 'à l’année' },
+    benefits: [
+      { icon: 'ages', title: 'Vie associative', text: 'Sorties, régates et événements toute l’année, au-delà des seuls cours.' },
+      { icon: 'progress', title: 'Matériel inclus', text: 'L’adhésion donne généralement accès à la flotte du club, sans avoir à acheter son propre bateau.' },
+      { icon: 'diploma', title: 'Licence FFVoile', text: 'L’adhésion à un club inclut le plus souvent la licence fédérale et l’assurance responsabilité civile.' },
+    ],
+    profiles: [
+      { tag: 'NOUVEAU PRATIQUANT', title: 'Première adhésion', text: 'Renseignez-vous sur les séances ou stages de découverte avant de vous engager à l’année.' },
+      { tag: 'FAMILLE', title: 'Pratique en famille', text: 'Beaucoup de clubs proposent des formules enfant + parent ou des activités multi-supports adaptées.' },
+      { tag: 'COMPÉTITION', title: 'Régate & performance', text: 'Certains clubs disposent d’une section compétition avec entraînements et calendrier de régates.' },
+    ],
   },
 };
 

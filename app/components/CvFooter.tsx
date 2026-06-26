@@ -26,7 +26,7 @@ export default function CvFooter() {
       <div className="wrap">
         <div className="foot-top">
           <div>
-            <div className="foot-logo"><CvLogo size={26} /></div>
+            <div className="foot-logo"><CvLogo size={26} variant="dark" /></div>
             <p style={{ marginTop: 12, maxWidth: 260 }}>L&apos;annuaire des clubs de voile français. De l&apos;Optimist à la croisière.</p>
           </div>
           <div className="foot-cols">

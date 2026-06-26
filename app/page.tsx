@@ -175,7 +175,7 @@ export default function HomePage() {
       const L = (window as any).L;
       if (!L || mapRef.current) return;
       const map = L.map('cv-map', { scrollWheelZoom: false }).setView([46.6, 2.2], 5.4);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
       const cluster = L.markerClusterGroup({
         maxClusterRadius: 55, showCoverageOnHover: false,
         iconCreateFunction: (c: any) => L.divIcon({ html: '<div>' + c.getChildCount() + '</div>', className: 'marker-cluster marker-cluster-cv', iconSize: [40, 40] }),
@@ -237,6 +237,20 @@ export default function HomePage() {
     return FEATURED_IDS.map((id) => byId.get(id)).filter(Boolean) as GeoClub[];
   }, [clubs]);
 
+  // Compteurs réels par activité (pour les cartes « Explorez par activité »).
+  const topActs = useMemo(() => {
+    const cnt = new Map(geoActivities.map((a) => [a.slug, a.clubs]));
+    return SUPPORTS
+      .map((s) => ({ ...s, slug: slugify(s.k), count: cnt.get(slugify(s.k)) || 0 }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 7);
+  }, [geoActivities]);
+
+  const topRegions = useMemo(
+    () => [...geoRegions].sort((a, b) => b.clubs - a.clubs).slice(0, 6),
+    [geoRegions]
+  );
+
   const chooseRegion = (r: string) => {
     setRegion(r); setDep(''); setCity('');
     if (r && mapRef.current && CENTERS[r]) mapRef.current.flyTo(CENTERS[r], 8, { duration: 1.1 });
@@ -282,173 +296,192 @@ export default function HomePage() {
 
       <CvNav />
 
-      <header className="hero">
-        <svg className="contours" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <g fill="none" stroke="#1B4368" strokeWidth="1.5">
-            <path d="M-50 120 C 200 60, 420 180, 650 110 S 1050 40, 1280 140" />
-            <path d="M-50 200 C 220 150, 440 260, 680 190 S 1060 130, 1280 220" />
-            <path d="M-50 300 C 240 250, 470 360, 700 290 S 1080 230, 1280 320" />
-            <path d="M-50 410 C 250 360, 480 470, 720 400 S 1090 340, 1280 430" stroke="#FF5436" strokeOpacity=".4" />
-            <path d="M-50 520 C 260 470, 500 580, 740 510 S 1100 450, 1280 540" />
-            <path d="M-50 630 C 270 580, 520 690, 760 620 S 1110 560, 1280 650" />
-          </g>
-        </svg>
-        <div className="wrap hero-in">
-          <div className="hero-copy">
-            <span className="eyebrow">1 200+ clubs · tous les littoraux</span>
-            <h1>Votre prochain club<br />de voile,<br /><em>partout en France.</em></h1>
-            <p className="lede">De l&apos;Optimist au wingfoil, de la Manche à la Corse. Choisissez votre support, votre coin de côte, et embarquez.</p>
-            <div className="hero-stats">
-              <div><div className="n">{count.toLocaleString('fr-FR')}</div><div className="l">Clubs référencés</div></div>
-              <div><div className="n">{SUPPORTS.length}</div><div className="l">Supports</div></div>
-              <div><div className="n">26</div><div className="l">Départements côtiers</div></div>
-            </div>
-          </div>
+      {/* ============ HERO ============ */}
+      <section className="cap-wrap cap-hero">
+        <div className="cap-hero-copy">
+          <div className="cap-pill"><span className="dot" />{count > 0 ? count.toLocaleString('fr-FR') : '1 800'}+ clubs vérifiés partout en France</div>
+          <h1>Trouvez le club de voile <span className="accent">qui vous ressemble.</span></h1>
+          <p className="cap-lede">Stages, locations, écoles et bases nautiques — comparez, lisez les avis et réservez près de chez vous. De l&apos;Optimist au wingfoil.</p>
 
-          <div className="sim">
-            <div className="sim-head">Trouvez votre club <span className="badge">Simulateur</span></div>
-            <p className="sim-sub">Affinez en quelques clics. On vous emmène au bon endroit.</p>
-            <div className="field">
-              <label>Support</label>
+          <div className="cap-search">
+            <label className="cap-search-field">
+              <span className="cap-search-label">ACTIVITÉ</span>
               <select value={sup} onChange={(e) => setSup(e.target.value)}>
-                <option value="">Tous les supports</option>
-                {SUPPORTS.map(s => <option key={s.k}>{s.k}</option>)}
+                <option value="">Toutes les activités</option>
+                {SUPPORTS.map((s) => <option key={s.k}>{s.k}</option>)}
               </select>
-            </div>
-            <div className="field">
-              <label>Région</label>
+            </label>
+            <div className="cap-search-sep" />
+            <label className="cap-search-field">
+              <span className="cap-search-label">OÙ ?</span>
               <select value={region} onChange={(e) => chooseRegion(e.target.value)}>
-                <option value="">Toutes les régions</option>
-                {Object.keys(GEO).map(r => <option key={r}>{r}</option>)}
+                <option value="">Toute la France</option>
+                {Object.keys(GEO).map((r) => <option key={r}>{r}</option>)}
               </select>
-            </div>
-            <div className="field-row">
-              <div className="field">
-                <label>Département</label>
-                <select value={dep} disabled={!region} onChange={(e) => { setDep(e.target.value); setCity(''); }}>
-                  <option value="">{region ? 'Tous les départements' : '—'}</option>
-                  {region && Object.keys(GEO[region]).map(d => <option key={d}>{d}</option>)}
-                </select>
-              </div>
-              <div className="field">
-                <label>Ville</label>
-                <select value={city} disabled={!dep} onChange={(e) => setCity(e.target.value)}>
-                  <option value="">{dep ? 'Toutes les villes' : '—'}</option>
-                  {region && dep && GEO[region][dep].map(v => <option key={v}>{v}</option>)}
-                </select>
-              </div>
-            </div>
-            <button className="sim-go" onClick={voirLesClubs}>
-              Voir les clubs
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </label>
+            <button className="cap-search-btn" onClick={voirLesClubs}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
+              Rechercher
             </button>
           </div>
-        </div>
-      </header>
+          <div className="cap-popular">Populaire : <Link href="/stage-de-voile">Stage de voile</Link> · <Link href="/catamaran">Catamaran</Link> · <Link href="/wingfoil">Wingfoil</Link></div>
 
-      <section className="block supports" id="supports">
-        <div className="wrap">
-          <div className="sec-eyebrow">Choisissez votre support</div>
-          <h2 className="sec-title">Ce que vous voulez naviguer décide de tout.</h2>
-          <p className="sec-intro">Les nouvelles glisses ou les grands classiques — cliquez sur un support pour voir les clubs qui le proposent sur la carte.</p>
-          <div className="sup-grid">
-            {SUPPORTS.map(s => (
-              <Link key={s.k} href={`/${slugify(s.k)}`} className={'sup' + (sup === s.k ? ' active' : '')}>
-                {s.trend && <span className="trend">Tendance</span>}
-                <svg className="ic"><use href={'#' + s.ic} /></svg>
-                <h3>{s.k}</h3><p>{s.d}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <svg className="wave" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 46 V20 C 200 0 400 40 600 24 S 1000 0 1200 22 V46 Z" /></svg>
-
-      <section className="block map-block" id="carte">
-        <div className="wrap">
-          <div className="sec-eyebrow">La carte vivante</div>
-          <h2 className="sec-title">Tous les clubs, d&apos;un seul regard.</h2>
-          <p className="sec-intro">Dézoomez et les clubs se regroupent par zone. Filtrez par support pour ne voir que ce qui vous intéresse.</p>
-          <div className="filterbar">
-            <button className={'fchip' + (sup === '' ? ' active' : '')} onClick={() => setSup('')}>
-              <svg className="ic"><use href="#ic-all" /></svg>Tous
-            </button>
-            {SUPPORTS.map(s => (
-              <button key={s.k} className={'fchip' + (sup === s.k ? ' active' : '')} onClick={() => setSup(s.k)}>
-                <svg className="ic"><use href={'#' + s.ic} /></svg>{s.k}
-              </button>
-            ))}
-          </div>
-          <div className="map-shell">
-            <div id="cv-map" />
-            <div className="map-meta"><span className="chip">{visibleCount}</span><b>{sup ? 'clubs · ' + sup : 'clubs affichés'}</b></div>
-          </div>
-        </div>
-      </section>
-
-      <svg className="wave" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 46 V20 C 200 0 400 40 600 24 S 1000 0 1200 22 V46 Z" /></svg>
-
-      <section className="block regions" id="regions">
-        <div className="wrap">
-          <div className="sec-eyebrow">Par région</div>
-          <h2 className="sec-title">Explorez la voile, région par région.</h2>
-          <p className="sec-intro">Cliquez sur une région pour découvrir ses départements, puis ses villes et tous les clubs qui s&apos;y trouvent.</p>
-          {geoRegions.length > 0 && <FranceRegionMap regions={geoRegions} />}
-        </div>
-      </section>
-
-      <svg className="wave" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 V26 C 200 46 400 6 600 22 S 1000 46 1200 24 V0 Z" /></svg>
-
-      <section className="block steps">
-        <div className="wrap">
-          <div className="sec-eyebrow">Comment ça marche</div>
-          <h2 className="sec-title">Du choix du support à l&apos;eau, en quatre temps.</h2>
-          <div className="steps-grid">
-            <div className="step"><div className="num">01</div><h3>Choisissez</h3><p>Votre support et votre coin de littoral, du Nord à la Corse.</p></div>
-            <div className="step"><div className="num">02</div><h3>Comparez</h3><p>Notes, activités, horaires et contacts réunis sur une seule fiche.</p></div>
-            <div className="step"><div className="num">03</div><h3>Contactez</h3><p>Téléphone, mail ou site du club, en un clic.</p></div>
-            <div className="step"><div className="num">04</div><h3>Naviguez</h3><p>Réservez votre stage ou votre séance, et prenez le large.</p></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="block clubs" id="clubs">
-        <div className="wrap">
-          <div className="sec-eyebrow">À l&apos;affiche</div>
-          <h2 className="sec-title">Les clubs les plus plébiscités.</h2>
-          <div className="cards">
-            {featured.map(c => (
-              <Link key={c.id} href={c.path || ('/club/' + c.id)} className="card">
-                <div className="card-img card-img--initials">
-                  <span className="card-initials">{getInitials(c.name)}</span>
-                  {!!c.rating && <span className="card-rate">★ {c.rating.toFixed(1)}</span>}
-                </div>
-                <div className="card-body">
-                  <h3>{c.name}</h3>
-                  <div className="card-loc">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-6.3-7-11a7 7 0 0114 0c0 4.7-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
-                    {(c.city || '').replace(/^\d{4,5}\s+/, '')}
-                  </div>
-                  {!!c.reviewCount && <div className="card-reviews">{c.reviewCount.toLocaleString('fr-FR')} avis Google</div>}
-                  <div className="card-acts">{(c.activities || []).filter(a => a !== 'En cours de traitement').slice(0, 3).map(a => <span key={a} className="pill">{a}</span>)}</div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="block cta-wrap">
-        <div className="wrap">
-          <div className="strip">
-            <svg className="cstripwave" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="#fff" strokeWidth="2"><path d="M-50 80 C 250 30 450 130 750 70 S 1150 20 1280 90" /><path d="M-50 170 C 250 120 450 220 750 160 S 1150 110 1280 180" /><path d="M-50 250 C 250 200 450 300 750 240 S 1150 190 1280 260" /></g></svg>
+          <div className="cap-trust">
+            <div className="cap-avatars">
+              <span className="cap-av cap-av-1" /><span className="cap-av cap-av-2" /><span className="cap-av cap-av-3" /><span className="cap-av cap-av-4">+1k</span>
+            </div>
             <div>
-              <h2>Vous gérez un club&nbsp;? Gagnez en visibilité, gratuitement.</h2>
-              <p>Des milliers de passionnés cherchent leur prochain club. Référencez le vôtre sur l&apos;annuaire n°1 de la voile — c&apos;est gratuit. Parlons-en.</p>
+              <div className="cap-stars"><span className="s">★★★★★</span> 4,8/5</div>
+              <div className="cap-trust-sub">12 000 avis Google vérifiés</div>
             </div>
-            <a href="/contact" className="strip-btn">Contactez-nous →</a>
           </div>
+        </div>
+
+        <div className="cap-hero-map">
+          <div className="cap-map-pill">● Carte interactive</div>
+          <div id="cv-map" />
+          <div className="cap-map-cap">// {visibleCount.toLocaleString('fr-FR')} clubs · cliquez un marqueur</div>
+        </div>
+      </section>
+
+      {/* ============ STATS ============ */}
+      <section className="cap-wrap">
+        <div className="cap-stats">
+          <div className="cap-stat"><div className="cap-stat-n">{count > 0 ? count.toLocaleString('fr-FR') : '1 800'}<span>+</span></div><div className="cap-stat-l">clubs &amp; bases nautiques</div></div>
+          <div className="cap-stat"><div className="cap-stat-n">13</div><div className="cap-stat-l">régions, 96 départements</div></div>
+          <div className="cap-stat"><div className="cap-stat-n">{SUPPORTS.length}<span>+</span></div><div className="cap-stat-l">activités nautiques</div></div>
+          <div className="cap-stat"><div className="cap-stat-n">12 000</div><div className="cap-stat-l">avis Google vérifiés</div></div>
+        </div>
+      </section>
+
+      {/* ============ ACTIVITÉS ============ */}
+      <section className="cap-wrap cap-sec" id="supports">
+        <div className="cap-sec-head">
+          <div>
+            <div className="cap-mono">— Explorez par activité</div>
+            <h2 className="cap-h2">Quelle sera votre <span className="accent accent-coral">prochaine sortie&nbsp;?</span></h2>
+          </div>
+          <Link href="/activites" className="cap-pill-outline">Les {SUPPORTS.length}+ activités →</Link>
+        </div>
+        <div className="cap-act-grid">
+          {topActs.map((a) => (
+            <Link key={a.slug} href={`/${a.slug}`} className="cap-act-card">
+              <span className="cap-act-ic"><svg className="ic"><use href={'#' + a.ic} /></svg></span>
+              <div><h3>{a.k}</h3><div className="n">{a.count > 0 ? `${a.count} clubs` : 'À découvrir'}</div></div>
+            </Link>
+          ))}
+          <Link href="/activites" className="cap-act-card cap-act-card--all">
+            <span className="cap-act-ic"><svg className="ic"><use href="#ic-all" /></svg></span>
+            <div><h3>Toutes les activités</h3><div className="n">{SUPPORTS.length}+ disciplines →</div></div>
+          </Link>
+        </div>
+      </section>
+
+      {/* ============ RÉGIONS ============ */}
+      <section className="cap-regions" id="regions">
+        <div className="cap-wrap cap-regions-in">
+          <div>
+            <div className="cap-mono">— La voile près de chez vous</div>
+            <h2 className="cap-h2">Naviguez par <span className="accent">région.</span></h2>
+            <p>De la Bretagne à la Côte d&apos;Azur, chaque littoral a ses clubs, ses spots et ses spécialités. Cliquez sur une région pour explorer.</p>
+            <div className="cap-chips">
+              {topRegions.map((r) => (
+                <Link key={r.slug} href={`/${r.slug}`} className="cap-chip">{r.name}<span className="c">{r.clubs}</span></Link>
+              ))}
+              {geoRegions.length > 6 && <Link href="/#regions" className="cap-chip cap-chip--more">+ {geoRegions.length - 6} régions →</Link>}
+            </div>
+          </div>
+          <div className="cap-regions-map">
+            {geoRegions.length > 0 && <FranceRegionMap regions={geoRegions} />}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ CLUBS À L'AFFICHE ============ */}
+      <section className="cap-wrap cap-sec">
+        <div className="cap-sec-head">
+          <div>
+            <div className="cap-mono">— Clubs à l&apos;affiche</div>
+            <h2 className="cap-h2">Des bases nautiques <span className="accent accent-coral">d&apos;exception.</span></h2>
+          </div>
+          <Link href="/search" className="cap-pill-outline">Tous les clubs →</Link>
+        </div>
+        <div className="cap-club-grid">
+          {featured.map((c) => (
+            <Link key={c.id} href={c.path || ('/club/' + c.id)} className="cap-club-card">
+              <div className="cap-club-head">
+                <span className="cap-club-badge">Coup de cœur</span>
+                <span className="cap-club-logo">{getInitials(c.name)}</span>
+              </div>
+              <div className="cap-club-body">
+                <div className="top">
+                  <h3>{c.name}</h3>
+                  {!!c.rating && <span className="cap-club-rate"><span className="star">★</span>{c.rating.toFixed(1)}</span>}
+                </div>
+                <div className="cap-club-loc">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
+                  {(c.city || '').replace(/^\d{4,5}\s+/, '')}
+                </div>
+                <div className="cap-club-tags">
+                  {(c.activities || []).filter((a) => a !== 'En cours de traitement').slice(0, 3).map((a) => <span key={a} className="cap-club-tag">{a}</span>)}
+                </div>
+                <div className="cap-club-foot">
+                  <span className="meta">{c.reviewCount ? `${c.reviewCount.toLocaleString('fr-FR')} avis Google` : 'Fiche club'}</span>
+                  <span className="go">Voir le club →</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ============ COMMENT ÇA MARCHE ============ */}
+      <section className="cap-how">
+        <div className="cap-wrap cap-how-in">
+          <div className="cap-how-head">
+            <div className="cap-mono">— Comment ça marche</div>
+            <h2>Embarquez en <span className="accent">trois temps.</span></h2>
+          </div>
+          <div className="cap-how-grid">
+            <div className="cap-how-card">
+              <div className="cap-how-num">01</div>
+              <div className="cap-how-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg></div>
+              <h3>Cherchez</h3>
+              <p>Activité, lieu, niveau, âge. Filtrez parmi {count > 0 ? count.toLocaleString('fr-FR') : '1 800'} clubs et trouvez celui qui colle à votre projet.</p>
+            </div>
+            <div className="cap-how-card">
+              <div className="cap-how-num">02</div>
+              <div className="cap-how-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 18V9M10 18V4M16 18v-6M22 18H2" /></svg></div>
+              <h3>Comparez</h3>
+              <p>Avis Google, photos, activités, horaires. Tout est réuni sur une fiche claire, sans jargon.</p>
+            </div>
+            <div className="cap-how-card">
+              <div className="cap-how-num">03</div>
+              <div className="cap-how-ic cap-how-ic--coral"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5L20 6" /></svg></div>
+              <h3>Contactez</h3>
+              <p>Téléphone, mail ou site du club, en un clic. Itinéraire et infos pratiques inclus.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ PILIERS ============ */}
+      <section className="cap-wrap cap-sec">
+        <div className="cap-pillars">
+          <Link href="/stage-de-voile" className="cap-pillar p1"><div><div className="path">/stage-de-voile</div><h3>Stage de voile</h3><p>Vacances, week-ends, perfectionnement →</p></div></Link>
+          <Link href="/ecole-de-voile" className="cap-pillar p2"><div><div className="path">/ecole-de-voile</div><h3>École de voile</h3><p>Apprendre à barrer, du débutant au confirmé →</p></div></Link>
+          <Link href="/club-de-voile" className="cap-pillar p3"><div><div className="path">/club-de-voile</div><h3>Club de voile</h3><p>Adhésion, licence, vie associative →</p></div></Link>
+        </div>
+      </section>
+
+      {/* ============ CTA ============ */}
+      <section className="cap-wrap cap-cta">
+        <div className="cap-cta-in">
+          <div>
+            <h2>Vous gérez un club&nbsp;? <span className="accent">Référencez-le gratuitement.</span></h2>
+            <p>Des milliers de passionnés cherchent leur prochain club. Rejoignez l&apos;annuaire n°1 de la voile — c&apos;est gratuit.</p>
+          </div>
+          <Link href="/contact" className="cap-cta-btn">Ajouter mon club →</Link>
         </div>
       </section>
 

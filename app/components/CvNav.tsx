@@ -9,9 +9,9 @@ export default function CvNav() {
   const close = () => setOpen(false);
 
   return (
-    <nav className="nav">
+    <nav className="nav nav-cap">
       <div className="wrap nav-in">
-        <Link href="/" className="logo" onClick={close}><CvLogo size={30} /></Link>
+        <Link href="/" className="logo" onClick={close}><CvLogo size={32} /></Link>
 
         <button
           type="button"
@@ -24,11 +24,16 @@ export default function CvNav() {
         </button>
 
         <div className={'nav-links' + (open ? ' is-open' : '')}>
-          <Link href="/activites" onClick={close}>Par activité</Link>
-          <Link href="/#regions" onClick={close}>Par région</Link>
-          <Link href="/#carte" onClick={close}>La carte</Link>
-          <Link href="/search" onClick={close}>Rechercher</Link>
-          <Link href="/contact" className="nav-cta" onClick={close}>Référencer mon club</Link>
+          <Link href="/activites" onClick={close}>Activités</Link>
+          <Link href="/#regions" onClick={close}>Régions</Link>
+          <Link href="/stage-de-voile" onClick={close}>Stages</Link>
+          <Link href="/ecole-de-voile" onClick={close}>Écoles</Link>
+          <Link href="/club-de-voile" onClick={close}>Clubs</Link>
+        </div>
+
+        <div className="nav-actions">
+          <Link href="/contact" className="nav-ghost" onClick={close}>Ajouter mon club</Link>
+          <Link href="/search" className="nav-cta" onClick={close}>Trouver un club</Link>
         </div>
       </div>
     </nav>

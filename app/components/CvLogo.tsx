@@ -1,34 +1,48 @@
-// Logo ClubsVoile.fr — concept « Le repère » : pin de carte contenant un
-// voilier (annuaire + voile). Le pin est corail, le voilier blanc → lisible
-// sur fond marine comme sur crème.
+// Logo ClubsVoile.fr — système « Cap ». Pictogramme = pin (carré arrondi à
+// 3 coins + 1 coin pointu, pivoté 45°) contenant une voile triangulaire.
+// Variante claire (fond clair) : pin marine + voile corail.
+// Variante sombre (fond sombre, footer) : pin corail + voile blanche.
 
-export function CvLogoMark({ size = 28, className = '' }: { size?: number; className?: string }) {
+export function CvLogoMark({ size = 32, variant = 'light' }: { size?: number; variant?: 'light' | 'dark' }) {
+  const pin = variant === 'dark' ? '#FF5436' : '#0B1E33';
+  const sail = variant === 'dark' ? '#ffffff' : '#FF5436';
+  const side = Math.round(size * 0.16);
+  const tri = Math.round(size * 0.375);
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 64 64"
-      className={className}
-      role="img"
-      aria-label="ClubsVoile.fr"
+    <span
+      className="cv-mark"
+      aria-hidden="true"
+      style={{
+        width: size,
+        height: size,
+        background: pin,
+        borderRadius: '50% 50% 50% 3px',
+        transform: 'rotate(45deg)',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flex: '0 0 auto',
+      }}
     >
-      <path
-        d="M32 4 C18 4 8 15 8 27 C8 42 32 60 32 60 C32 60 56 42 56 27 C56 15 46 4 32 4 Z"
-        fill="#FF5436"
+      <span
+        style={{
+          transform: 'rotate(-45deg)',
+          width: 0,
+          height: 0,
+          borderLeft: `${side}px solid transparent`,
+          borderRight: `${side}px solid transparent`,
+          borderBottom: `${tri}px solid ${sail}`,
+        }}
       />
-      <path d="M20 40 L44 40 L40 46 L24 46 Z" fill="#fff" />
-      <rect x="30.25" y="13" width="3" height="26" rx="1.5" fill="#fff" />
-      <path d="M33.5 14 C44 21 44 32 33.5 38 Z" fill="#fff" />
-      <path d="M29 17 L20.5 38 L29 38 Z" fill="#fff" opacity="0.5" />
-    </svg>
+    </span>
   );
 }
 
 // Verrou complet (pictogramme + mot). La couleur du mot est héritée du parent.
-export default function CvLogo({ size = 28 }: { size?: number }) {
+export default function CvLogo({ size = 32, variant = 'light' }: { size?: number; variant?: 'light' | 'dark' }) {
   return (
     <>
-      <CvLogoMark size={size} className="cv-logo-mark" />
+      <CvLogoMark size={size} variant={variant} />
       <span className="cv-logo-word">
         ClubsVoile<span className="tld">.fr</span>
       </span>
