@@ -40,6 +40,8 @@ type GeoClub = {
   reviewCount?: number;
   scheduleOpen?: string;
   path?: string;
+  photo?: string;
+  logo?: string;
 };
 
 const DAYS_FR: Record<string, string> = {
@@ -64,7 +66,7 @@ function escapeHtml(s: string) {
 const FEATURED_IDS = [
   '1faeecf6-3254-4f73-9a61-4962189a0709', // Club la Pelle — Marseille
   'a0d89e7a-a301-47bc-ab96-acebf9f47889', // Yacht Club de Toulon
-  'ed884b45-40b7-46e0-8e96-20de8670ea87', // Centre Nautique de Brest
+  'ed884b45-40b7-46e0-8e96-20de8670ea87', // Brest Bretagne Nautisme
   '258fa8ba-0d39-4035-8508-d07e7b6d45a8', // Cannes Jeunesse — Base du Mourre Rouge
   'b045ab42-2b9b-4bc7-9d0c-a6d11c7b2f9e', // Ecole de Voile Courseulles-sur-Mer
   'e8d04a71-5ad7-4b3c-b3e9-a9bd4365c25b', // eFoil Sanguinet
@@ -113,6 +115,8 @@ export default function HomePage() {
             reviewCount: c.reviewCount,
             scheduleOpen: c.scheduleOpen,
             path: c.path,
+            photo: typeof c.photos?.[0] === 'string' && (c.photos[0].startsWith('http') || c.photos[0].startsWith('/api/photo')) ? c.photos[0] : undefined,
+            logo: typeof c.logo === 'string' && (c.logo.startsWith('http') || c.logo.startsWith('/')) ? c.logo : undefined,
           }));
         clubsRef.current = geo;
         setClubs(geo);
@@ -184,6 +188,16 @@ export default function HomePage() {
       map.on('click', () => map.scrollWheelZoom.enable());
       mapRef.current = map; clusterRef.current = cluster; readyRef.current = true;
       renderMarkers('');
+
+      // Le conteneur (grid CSS) peut ne pas avoir sa taille finale au moment
+      // de l'init (polices/layout pas encore stabilisés) : Leaflet calcule
+      // alors le centrage/zoom sur une mauvaise taille de boîte, ce qui rend
+      // la vue « France entière » zoomée sur une petite zone locale. On
+      // recalibre après le layout, et on réécoute les changements de taille.
+      requestAnimationFrame(() => map.invalidateSize());
+      setTimeout(() => { map.invalidateSize(); map.setView([46.6, 2.2], 5.4); }, 300);
+      const ro = new ResizeObserver(() => map.invalidateSize());
+      ro.observe(target);
     };
 
     const io = new IntersectionObserver((entries) => {
@@ -410,8 +424,13 @@ export default function HomePage() {
           {featured.map((c) => (
             <Link key={c.id} href={c.path || ('/club/' + c.id)} className="cap-club-card">
               <div className="cap-club-head">
+                {c.photo && <img src={c.photo} alt={c.name} loading="lazy" />}
                 <span className="cap-club-badge">Coup de cœur</span>
-                <span className="cap-club-logo">{getInitials(c.name)}</span>
+                {c.logo ? (
+                  <span className="cap-club-logo"><img src={c.logo} alt={c.name} /></span>
+                ) : (
+                  <span className="cap-club-logo">{getInitials(c.name)}</span>
+                )}
               </div>
               <div className="cap-club-body">
                 <div className="top">

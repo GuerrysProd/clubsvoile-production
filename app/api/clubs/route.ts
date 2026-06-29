@@ -36,7 +36,8 @@ export async function GET() {
           longitude,
           rating,
           review_count,
-          schedule_open
+          schedule_open,
+          photos
         `, { count: 'exact' })
         .range(from, from + PAGE_SIZE - 1);
 
@@ -69,6 +70,7 @@ export async function GET() {
       rating: c.rating,
       reviewCount: c.review_count,
       scheduleOpen: c.schedule_open,
+      photos: c.photos || [],
       path: buildClubPath(c, slugs.get(c.id)!),
     }));
 

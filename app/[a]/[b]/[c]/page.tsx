@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import '../../../home.css';
@@ -42,19 +43,25 @@ async function getCityData(params: Params) {
     ? Math.round((rated.reduce((s, c) => s + (c.rating || 0), 0) / rated.length) * 10) / 10
     : null;
 
-  // Coordonnées réelles des clubs de la ville, pour la mini-carte et la carte
-  // sticky (bbox calculée sur les points réels, pas de position inventée).
+  // Coordonnées + photos réelles des clubs de la ville : bbox de la carte
+  // calculée sur les points réels, et vignette de chaque carte résultat tirée
+  // de la vraie première photo Google du club.
   const ids = city.clubs.map((c) => c.id);
   let coords: { latitude: number; longitude: number }[] = [];
+  const photoById = new Map<string, string>();
   if (ids.length) {
-    const { data } = await supabase.from('clubs').select('latitude, longitude').in('id', ids);
+    const { data } = await supabase.from('clubs').select('id, latitude, longitude, photos').in('id', ids);
     coords = (data || []).filter((c) => typeof c.latitude === 'number' && typeof c.longitude === 'number') as {
       latitude: number;
       longitude: number;
     }[];
+    for (const c of data || []) {
+      const p = (c.photos || [])[0];
+      if (typeof p === 'string' && (p.startsWith('http') || p.startsWith('/api/photo'))) photoById.set(c.id, p);
+    }
   }
 
-  return { region, department, city, cityActivities, siblingCities, avgRating, coords };
+  return { region, department, city, cityActivities, siblingCities, avgRating, coords, photoById };
 }
 
 function bboxMapUrl(coords: { latitude: number; longitude: number }[], pad = 0.04) {
@@ -89,7 +96,7 @@ export default async function CityPage({ params }: { params: Params }) {
   const data = await getCityData(params);
   if (!data) notFound();
 
-  const { region, department, city, cityActivities, siblingCities, avgRating, coords } = data;
+  const { region, department, city, cityActivities, siblingCities, avgRating, coords, photoById } = data;
   const path = `/${params.a}/${params.b}/${params.c}`;
   const seo = await getSeoContent(path);
   const mapUrl = bboxMapUrl(coords);
@@ -167,14 +174,17 @@ export default async function CityPage({ params }: { params: Params }) {
         </div>
       )}
 
-      {/* ============ RÉSULTATS + CARTE ============ */}
-      <div className="cap-wrap cap-city-layout">
+      {/* ============ RÉSULTATS ============ */}
+      <div className="cap-wrap cap-city-layout cap-city-layout--full">
         <div>
           <div className="cap-city-count"><strong>{city.clubs.length} club{city.clubs.length > 1 ? 's' : ''}</strong> à {city.name} et alentours</div>
           <div className="cap-result-list">
             {sortedClubs.map((club, i) => (
               <Link key={club.id} href={club.path} className="cap-result">
                 <div className="cap-result-img">
+                  {photoById.get(club.id) && (
+                    <Image src={photoById.get(club.id)!} alt={`${club.name}, club de voile à ${city.name}`} fill sizes="200px" style={{ objectFit: 'cover' }} />
+                  )}
                   {i === 0 && <span className="cap-result-badge">Coup de cœur</span>}
                 </div>
                 <div className="cap-result-body">
@@ -197,13 +207,6 @@ export default async function CityPage({ params }: { params: Params }) {
             ))}
           </div>
         </div>
-
-        {mapUrl && (
-          <div className="cap-city-map">
-            <iframe src={mapUrl} title={`Carte — clubs à ${city.name}`} loading="lazy" />
-            <div className="cap-city-map-badge"><span className="dot" />{city.clubs.length} club{city.clubs.length > 1 ? 's' : ''} sur la carte</div>
-          </div>
-        )}
       </div>
 
       {seo?.intro_html && (

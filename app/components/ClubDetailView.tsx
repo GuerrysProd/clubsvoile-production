@@ -17,6 +17,40 @@ const DAYS_FR: Record<string, string> = {
 
 const TODAY_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
 
+// Traduit des horaires Google au format anglais (« 9:00 AM – 5:00 PM », « Closed »)
+// en français 24 h (« 9h – 17h », « Fermé »). Gère les plages multiples
+// (« 9:00 AM – 12:30 PM, 1:30 – 5:30 PM ») et l'héritage AM/PM : quand une
+// heure n'a pas de méridien explicite, on reprend celui de l'heure suivante.
+function translateHours(raw: string): string {
+  const txt = raw.trim();
+  if (!txt) return '';
+  if (/^(closed|fermé)$/i.test(txt)) return 'Fermé';
+  if (/^(open\s*24\s*hours|24\s*hours|ouvert\s*24)/i.test(txt)) return 'Ouvert 24 h/24';
+
+  const timeRe = /(\d{1,2}):(\d{2})\s*(AM|PM)?/gi;
+  const matches = [...txt.matchAll(timeRe)];
+  // Remplit en arrière le méridien manquant avec le prochain explicite.
+  const mers: (string | null)[] = new Array(matches.length).fill(null);
+  let next: string | null = null;
+  for (let i = matches.length - 1; i >= 0; i--) {
+    if (matches[i][3]) next = matches[i][3].toUpperCase();
+    mers[i] = matches[i][3] ? matches[i][3].toUpperCase() : next;
+  }
+
+  let idx = 0;
+  let out = txt.replace(timeRe, (_m, h: string, mn: string) => {
+    const mer = mers[idx++] || 'AM';
+    let H = parseInt(h, 10);
+    const M = parseInt(mn, 10);
+    if (mer === 'PM' && H !== 12) H += 12;
+    if (mer === 'AM' && H === 12) H = 0;
+    return M === 0 ? `${H}h` : `${H}h${String(M).padStart(2, '0')}`;
+  });
+
+  out = out.replace(/\bClosed\b/gi, 'Fermé').replace(/\s*–\s*/g, ' – ');
+  return out;
+}
+
 function parseSchedule(raw?: string) {
   if (!raw) return [];
   return raw.split('|').map((part) => {
@@ -24,7 +58,7 @@ function parseSchedule(raw?: string) {
     const dayKey = day.trim();
     return {
       day: DAYS_FR[dayKey] || dayKey,
-      hours: rest.join(':').trim(),
+      hours: translateHours(rest.join(':').trim()),
       isToday: dayKey === TODAY_EN,
     };
   });
@@ -105,6 +139,12 @@ export default function ClubDetailView({
       ? `https://www.google.com/maps/search/?api=1&query=${club.latitude},${club.longitude}`
       : undefined);
 
+  // Lien « avis Google » : on cible la fiche établissement exacte via le
+  // place_id (pas une simple recherche de coordonnées qui retombe sur la carte).
+  const reviewsHref = club.google_place_id
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(club.name)}&query_place_id=${club.google_place_id}`
+    : mapsHref;
+
   return (
     <>
       <div className="cap-wrap">
@@ -129,7 +169,7 @@ export default function ClubDetailView({
         <div className="cap-title-block">
           <div className="cap-title-main">
             <div className="cap-title-logo">
-              {club.logo_url ? <Image src={club.logo_url} alt={`Logo de ${club.name}`} fill sizes="74px" style={{ objectFit: 'cover' }} /> : getInitials(club.name)}
+              {club.logo_url ? <Image src={club.logo_url} alt={`Logo de ${club.name}`} fill sizes="74px" style={{ objectFit: 'contain', padding: 6 }} /> : getInitials(club.name)}
             </div>
             <div>
               <div className="cap-title-h1">
@@ -216,9 +256,9 @@ export default function ClubDetailView({
                   Note calculée à partir des avis Google laissés sur la fiche établissement du club.
                 </p>
               </div>
-              {mapsHref && (
+              {reviewsHref && (
                 <div className="cap-rev-cta">
-                  <a href={mapsHref} target="_blank" rel="noopener noreferrer">Voir les avis sur Google →</a>
+                  <a href={reviewsHref} target="_blank" rel="noopener noreferrer">Voir les avis sur Google →</a>
                 </div>
               )}
             </>
