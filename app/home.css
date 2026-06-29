@@ -521,9 +521,9 @@
 @media(max-width:820px){.cv .cap-pillars{grid-template-columns:1fr}}
 .cv .cap-pillar{position:relative;height:300px;border-radius:22px;overflow:hidden;display:flex;align-items:flex-end;padding:28px;color:#fff}
 .cv .cap-pillar::after{content:"";position:absolute;inset:0;opacity:.14;background:repeating-linear-gradient(100deg,#fff 0 1px,transparent 1px 20px)}
-.cv .cap-pillar.p1{background:linear-gradient(180deg,rgba(11,30,51,.1),rgba(11,30,51,.85)),linear-gradient(150deg,var(--ink-3),var(--ink))}
-.cv .cap-pillar.p2{background:linear-gradient(180deg,rgba(14,92,92,.1),rgba(11,30,51,.85)),linear-gradient(150deg,var(--teal),var(--ink))}
-.cv .cap-pillar.p3{background:linear-gradient(180deg,rgba(224,56,28,.1),rgba(11,30,51,.88)),linear-gradient(150deg,var(--coral-deep),var(--ink))}
+.cv .cap-pillar.p1{background:linear-gradient(180deg,rgba(11,30,51,.08) 30%,rgba(11,30,51,.85)),url('/piliers/stage-de-voile.jpg') center/cover}
+.cv .cap-pillar.p2{background:linear-gradient(180deg,rgba(11,30,51,.08) 30%,rgba(11,30,51,.85)),url('/piliers/ecole-de-voile.webp') center/cover}
+.cv .cap-pillar.p3{background:linear-gradient(180deg,rgba(11,30,51,.08) 30%,rgba(11,30,51,.85)),url('/piliers/club-de-voile.jpg') center/cover}
 .cv .cap-pillar:hover{transform:translateY(-3px)}
 .cv .cap-pillar>div{position:relative;z-index:2}
 .cv .cap-pillar .path{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;color:rgba(255,255,255,.6);margin-bottom:8px}
