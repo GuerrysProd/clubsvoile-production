@@ -29,6 +29,7 @@ export default function CvNav() {
           <Link href="/stage-de-voile" onClick={close}>Stages</Link>
           <Link href="/ecole-de-voile" onClick={close}>Écoles</Link>
           <Link href="/club-de-voile" onClick={close}>Clubs</Link>
+          <Link href="/blog" onClick={close}>Blog</Link>
         </div>
 
         <div className="nav-actions">

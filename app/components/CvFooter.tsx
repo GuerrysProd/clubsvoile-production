@@ -31,7 +31,7 @@ export default function CvFooter() {
           </div>
           <div className="foot-cols">
             <div className="foot-col"><h4>Explorer</h4><Link href="/#supports">Supports</Link><Link href="/activites">Toutes les activités</Link><Link href="/#regions">La carte des régions</Link><Link href="/search">Tous les clubs</Link></div>
-            <div className="foot-col"><h4>Apprendre</h4><Link href="/ecole-de-voile">École de voile</Link><Link href="/stage-de-voile">Stage de voile</Link><Link href="/club-de-voile">Club de voile</Link></div>
+            <div className="foot-col"><h4>Apprendre</h4><Link href="/ecole-de-voile">École de voile</Link><Link href="/stage-de-voile">Stage de voile</Link><Link href="/club-de-voile">Club de voile</Link><Link href="/blog">Le blog</Link></div>
             <div className="foot-col"><h4>Clubs</h4><Link href="/contact">Référencer mon club</Link><Link href="/contact">Augmenter ma visibilité</Link><Link href="/admin/login">Connexion</Link></div>
             <div className="foot-col"><h4>Contact</h4><a href="mailto:contact@clubsvoile.fr">contact@clubsvoile.fr</a></div>
             {regions.length > 0 && (

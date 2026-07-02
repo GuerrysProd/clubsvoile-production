@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { ACTIVITIES } from '@/lib/activities';
 import { slugify } from '@/lib/slug';
 import { SITE_URL } from '@/lib/seo';
+import { getBlogCategories, getAllBlogPostsForSitemap } from '@/lib/blog';
 
 export const revalidate = 3600;
 
@@ -43,6 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const p of ['/club-de-voile', '/ecole-de-voile', '/stage-de-voile']) {
     add(p, 0.8, seoUpdated.get(p) ?? now, 'weekly');
   }
+  add('/blog', 0.7, now, 'weekly');
   add('/contact', 0.5, now, 'yearly');
   add('/a-propos', 0.4, now, 'yearly');
   add('/mentions-legales', 0.2, now, 'yearly');
@@ -75,6 +77,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       add(p, 0.6, seoUpdated.get(p) ?? now);
     }
   }
+
+  // Blog : clusters + articles
+  const [blogCats, blogPosts] = await Promise.all([getBlogCategories(), getAllBlogPostsForSitemap()]);
+  for (const c of blogCats) add(`/blog/${c.slug}`, 0.6, c.updated_at ? new Date(c.updated_at) : now, 'weekly');
+  for (const p of blogPosts)
+    add(`/blog/${p.categorySlug}/${p.slug}`, 0.6, p.updated_at ? new Date(p.updated_at) : now, 'monthly');
 
   return entries;
 }

@@ -1,0 +1,372 @@
+{
+  "name": "ClubsVoile — Blog SEO Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "node-sched",
+      "name": "Tous les jours 8h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/blog_topics?status=eq.pending&order=priority.desc,created_at.asc&limit=1&select=*' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-gettopic",
+      "name": "Get next topic",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalise la réponse REST et s'arrête si aucun sujet en attente.\nconst body = $input.first().json;\nconst rows = Array.isArray(body) ? body : (body.data ?? (body && body.id ? [body] : []));\nif (!rows.length) return [];           // file vide => le workflow s'arrête proprement\nreturn [{ json: rows[0] }];"
+      },
+      "id": "node-pick",
+      "name": "Pick topic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/blog_categories?slug=eq.' + encodeURIComponent($json.cluster_slug) + '&select=id' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-getcat",
+      "name": "Get category",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Récupère l'UUID du cluster à partir de son slug, et le rattache au sujet.\nconst cat = $input.first().json;\nconst rows = Array.isArray(cat) ? cat : (cat.data ?? (cat && cat.id ? [cat] : []));\nconst topic = $('Pick topic').item.json;\nif (!rows.length) throw new Error('Cluster introuvable pour slug: ' + topic.cluster_slug);\nreturn [{ json: { ...topic, category_id: rows[0].id } }];"
+      },
+      "id": "node-resolve",
+      "name": "Resolve category",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construit le corps de la requête Claude (Messages API + tool_use forcé).\nconst t = $input.first().json;\nconst SYSTEM = \"Tu es un rédacteur SEO expert pour ClubsVoile.fr, l'annuaire national des clubs de voile en France. Tu écris en français des articles de blog clairs, fiables et optimisés pour le référencement naturel.\\n\\nRÈGLES IMPÉRATIVES\\n- Public : grand public francophone qui veut apprendre la voile, choisir un support ou un club.\\n- Ton : accessible, concret, honnête (E-E-A-T). N'invente JAMAIS de prix précis, d'avis, de statistiques ou de faits invérifiables. Reste sur des fourchettes prudentes et des principes généraux.\\n- Contenu en HTML sémantique : <h2>, <h3>, <p>, <ul>/<li>, <strong>. JAMAIS de <h1> (le titre est séparé). Aucun style inline, aucune classe.\\n- Longueur : 650 à 1100 mots, utile, sans remplissage.\\n- Structure : commence par 1-2 paragraphes d'introduction (pas de <h2> en tout premier), puis 3 à 5 sections <h2>.\\n- MAILLAGE INTERNE OBLIGATOIRE : insère 2 à 4 liens <a href=\\\"...\\\"> vers l'annuaire, là où c'est pertinent. Cibles autorisées : /stage-de-voile, /ecole-de-voile, /club-de-voile, /activites, et les activités /optimist /catamaran /deriveur /wingfoil /windfoil /planche-a-voile-windsurf /kitesurf /kayak /paddle /surf /e-foil. N'invente pas d'autres URLs.\\n- slug : court, en kebab-case, reflète le mot-clé cible (sans accents).\\n- meta_title : <= 60 caractères. meta_description : <= 155 caractères, incitative.\\n- excerpt : 1 à 2 phrases qui résument l'article (sert de chapô et de fallback meta).\\n- faq : 2 à 4 questions/réponses réellement utiles. Les réponses peuvent contenir du HTML léger.\\n- cover_alt : description courte et descriptive de l'image de couverture.\\n- reading_minutes : estimation honnête (~200 mots/min).\\n\\nTu réponds UNIQUEMENT en appelant l'outil save_article. Aucun texte hors de l'outil.\";\nconst SCHEMA = {\"type\":\"object\",\"properties\":{\"title\":{\"type\":\"string\",\"description\":\"Titre H1 de l’article\"},\"slug\":{\"type\":\"string\",\"description\":\"kebab-case, sans accents, dérivé du mot-clé\"},\"excerpt\":{\"type\":\"string\",\"description\":\"Résumé 1-2 phrases\"},\"content_html\":{\"type\":\"string\",\"description\":\"Corps en HTML sémantique (h2/h3/p/ul/strong/a), sans h1\"},\"meta_title\":{\"type\":\"string\",\"description\":\"<= 60 caractères\"},\"meta_description\":{\"type\":\"string\",\"description\":\"<= 155 caractères\"},\"cover_alt\":{\"type\":\"string\",\"description\":\"Texte alternatif de l’image de couverture\"},\"tags\":{\"type\":\"array\",\"items\":{\"type\":\"string\"},\"description\":\"3 à 6 tags\"},\"faq\":{\"type\":\"array\",\"description\":\"2 à 4 questions/réponses\",\"items\":{\"type\":\"object\",\"properties\":{\"q\":{\"type\":\"string\"},\"a\":{\"type\":\"string\"}},\"required\":[\"q\",\"a\"],\"additionalProperties\":false}},\"reading_minutes\":{\"type\":\"integer\",\"description\":\"Temps de lecture estimé en minutes\"}},\"required\":[\"title\",\"slug\",\"excerpt\",\"content_html\",\"meta_title\",\"meta_description\",\"cover_alt\",\"tags\",\"faq\",\"reading_minutes\"],\"additionalProperties\":false};\nconst user = [\n  'Rédige un article de blog optimisé SEO pour ClubsVoile.fr.',\n  '',\n  'Mot-clé cible : ' + t.keyword,\n  'Cluster (thématique) : ' + t.cluster_slug,\n  'Intention de recherche : ' + (t.search_intent || 'informationnelle'),\n  'Angle / titre suggéré : ' + (t.title_hint || '(libre, choisis le meilleur)'),\n  'Consignes : ' + (t.notes || '(aucune)'),\n  '',\n  'Respecte toutes les règles du system prompt (HTML sémantique, maillage interne, méta, FAQ).'\n].join('\\n');\n\nconst claudeBody = {\n  model: 'claude-opus-4-8',\n  max_tokens: 8000,\n  system: SYSTEM,\n  tools: [{\n    name: 'save_article',\n    description: 'Enregistre l\\'article de blog optimisé SEO, prêt à publier.',\n    input_schema: SCHEMA,\n    strict: true\n  }],\n  tool_choice: { type: 'tool', name: 'save_article' },\n  messages: [{ role: 'user', content: user }]\n};\nreturn [{ json: { ...t, claudeBody } }];"
+      },
+      "id": "node-buildreq",
+      "name": "Build Claude request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{$env.ANTHROPIC_API_KEY}}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.claudeBody }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "node-claude",
+      "name": "Generate article (Claude)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrait le tool_use de la réponse Claude et construit la ligne blog_posts.\nconst resp = $input.first().json;\nconst blocks = resp.content || [];\nconst tool = blocks.find(b => b.type === 'tool_use');\nif (!tool) throw new Error('Réponse Claude sans tool_use: ' + JSON.stringify(resp).slice(0, 400));\nconst a = tool.input;\nconst t = $('Resolve category').item.json;\n\nconst slug = String(a.slug || a.title)\n  .toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')\n  .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');\n\nconst row = {\n  slug,\n  category_id: t.category_id,\n  title: a.title,\n  excerpt: a.excerpt,\n  content_html: a.content_html,\n  cover_image: t.cover_image || null,\n  cover_alt: a.cover_alt || null,\n  meta_title: a.meta_title,\n  meta_description: a.meta_description,\n  tags: a.tags || [],\n  faq: a.faq || [],\n  reading_minutes: a.reading_minutes || null,\n  author: 'L\\'équipe ClubsVoile.fr',\n  status: 'published',          // mets 'draft' si tu veux relire avant publication\n  published_at: new Date().toISOString()\n};\nreturn [{ json: row }];"
+      },
+      "id": "node-buildpost",
+      "name": "Build post row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/blog_posts' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "node-insert",
+      "name": "Insert post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/blog_topics?id=eq.' + $('Pick topic').item.json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_SERVICE_ROLE_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { status: 'done', post_id: ($json[0] && $json[0].id) || null, generated_at: new Date().toISOString() } }}",
+        "options": {}
+      },
+      "id": "node-done",
+      "name": "Mark topic done",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2400,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Tous les jours 8h": {
+      "main": [
+        [
+          {
+            "node": "Get next topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get next topic": {
+      "main": [
+        [
+          {
+            "node": "Pick topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick topic": {
+      "main": [
+        [
+          {
+            "node": "Get category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get category": {
+      "main": [
+        [
+          {
+            "node": "Resolve category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve category": {
+      "main": [
+        [
+          {
+            "node": "Build Claude request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Claude request": {
+      "main": [
+        [
+          {
+            "node": "Generate article (Claude)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate article (Claude)": {
+      "main": [
+        [
+          {
+            "node": "Build post row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build post row": {
+      "main": [
+        [
+          {
+            "node": "Insert post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert post": {
+      "main": [
+        [
+          {
+            "node": "Mark topic done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "clubsvoile"
+    },
+    {
+      "name": "blog"
+    }
+  ]
+}
